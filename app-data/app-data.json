@@ -1,0 +1,78 @@
+{
+  "keyFiles": [
+    {
+      "id": "package-json",
+      "path": "package.json",
+      "type": "configuration",
+      "description": "Core configuration and dependencies",
+      "version": "1.0.0",
+      "lastModified": null
+    },
+    {
+      "id": "vite-config",
+      "path": "vite.config.js",
+      "type": "configuration",
+      "description": "Build configuration",
+      "version": "1.0.0",
+      "lastModified": null
+    },
+    {
+      "id": "main-jsx",
+      "path": "src/main.jsx",
+      "type": "entry-point",
+      "description": "Application entry point",
+      "version": "1.0.0",
+      "lastModified": null
+    },
+    {
+      "id": "app-jsx",
+      "path": "src/App.jsx",
+      "type": "component",
+      "description": "Main application component",
+      "version": "1.0.1",
+      "lastModified": "2025-12-12T12:45:47.352Z"
+    },
+    {
+      "id": "data-persistence",
+      "path": "src/dataPersistence.js",
+      "type": "logic",
+      "description": "Data storage and retrieval logic",
+      "version": "1.0.0",
+      "lastModified": null
+    },
+    {
+      "id": "rm-vertical-scrubber",
+      "path": "src/components/rmVerticalScrubber.jsx",
+      "type": "component",
+      "description": "Core UI component for video scrubbing",
+      "version": "1.0.1",
+      "lastModified": "2025-12-12T12:45:28.873Z"
+    },
+    {
+      "id": "index-html",
+      "path": "index.html",
+      "type": "entry-point",
+      "description": "HTML entry point",
+      "version": "1.0.0",
+      "lastModified": null
+    },
+    {
+      "id": "app-css",
+      "path": "src/App.css",
+      "type": "styles",
+      "description": "Main application styles",
+      "version": "1.0.0",
+      "lastModified": null
+    },
+    {
+      "id": "rm-vertical-scrubber-css",
+      "path": "src/components/rmVerticalScrubber.css",
+      "type": "styles",
+      "description": "Component-specific styles",
+      "version": "1.0.0",
+      "lastModified": null
+    }
+  ],
+  "appVersion": "v1.0.0",
+  "lastUpdated": "2025-12-12T12:45:47.352Z"
+}

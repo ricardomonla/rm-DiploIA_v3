@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import YouTube from 'react-youtube'
 import './App.css'
-import EnhancedVerticalScrubberWithAccordion from './components/EnhancedVerticalScrubberWithAccordion'
+import RmVerticalScrubber from './components/rmVerticalScrubber'
 import {
   loadVideoAnnotations,
   saveVideoAnnotations,
@@ -135,7 +135,7 @@ function App() {
             </div>
             
             <div className="floating-enhanced-scrubber">
-              <EnhancedVerticalScrubberWithAccordion
+              <RmVerticalScrubber
                 annotations={annotations}
                 currentTime={liveCurrentTime}
                 duration={duration}
