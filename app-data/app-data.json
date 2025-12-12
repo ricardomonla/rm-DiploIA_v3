@@ -29,8 +29,8 @@
       "path": "src/App.jsx",
       "type": "component",
       "description": "Main application component",
-      "version": "1.0.2",
-      "lastModified": "2025-12-12T13:09:32.813Z"
+      "version": "1.0.3",
+      "lastModified": "2025-12-12T13:19:32.460Z"
     },
     {
       "id": "data-persistence",
@@ -45,8 +45,8 @@
       "path": "src/components/rmVerticalScrubber.jsx",
       "type": "component",
       "description": "Core UI component for video scrubbing",
-      "version": "1.0.2",
-      "lastModified": "2025-12-12T13:09:43.948Z"
+      "version": "1.0.3",
+      "lastModified": "2025-12-12T13:19:42.852Z"
     },
     {
       "id": "index-html",
@@ -74,7 +74,7 @@
     }
   ],
   "appVersion": "v1.0.0",
-  "lastUpdated": "2025-12-12T13:09:43.948Z",
+  "lastUpdated": "2025-12-12T13:19:42.852Z",
   "globalVersionSource": "app-version.js",
   "versionStrategy": "individual-file-versions-with-global-sync"
 }

@@ -1,7 +1,7 @@
 //  -----------------------------------------------------------------------------
 //  Project:     rm-DiploIA_v3
 //  File:        app-version.js
-//  Version:     1.0.0
+//  Version:     1.0.1
 //  Date:        2025-12-12
 //  Author:      Lic. Ricardo MONLA
 //  Email:       rmonla@gmail.com
@@ -16,7 +16,7 @@
  */
 
 // ========== CONFIGURACIÓN DE VERSIÓN ==========
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.0.1";
 const APP_NAME = "rm-DiploIA_v3";
 const APP_FULL_NAME = `${APP_NAME} v${APP_VERSION}`;
 

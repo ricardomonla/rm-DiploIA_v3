@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Versión global actualizada a 1.0.1
-- Versiones individuales de app-jsx y rm-vertical-scrubber actualizadas a 1.0.2
+- Versiones individuales de app-jsx y rm-vertical-scrubber actualizadas a 1.0.3
 
 ### Fixed
 - Errores de linting en app-data.js
