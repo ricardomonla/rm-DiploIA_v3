@@ -1,4 +1,5 @@
 {
     "docus_dir": "Clases_DiploIA/",
-    "allowed_extensions": [".pdf", ".md"]
+    "allowed_extensions": [".pdf", ".md"],
+    "campus_url": "https://cursos.utnba.centrodeelearning.com/course/view.php?id=7700#section-"
 }

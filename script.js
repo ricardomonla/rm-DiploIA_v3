@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const CONFIG = {
         allowedExtensions: ['.pdf', '.md', '.yaml', '.yml'],
         youtubeBaseUrl: 'https://www.youtube.com/embed/',
+        campusUrl: '',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -57,10 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             state.docusDir = config.docus_dir;
             CONFIG.allowedExtensions = config.allowed_extensions || ['.pdf', '.md', '.yaml', '.yml'];
+            CONFIG.campusUrl = config.campus_url || '';
             
             console.log('Docus config loaded:', {
                 docusDir: state.docusDir,
-                allowedExtensions: CONFIG.allowedExtensions
+                allowedExtensions: CONFIG.allowedExtensions,
+                campusUrl: CONFIG.campusUrl
             });
             
         } catch (error) {
@@ -278,6 +281,112 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.documentsList.appendChild(docButton);
             }
         }
+
+        // Add Campus button if campus_id is available
+        if (clase.campus_id) {
+            const campusButton = createDocumentButton('🏫 Ver Campus Virtual', () => openCampusUrl(clase));
+            campusButton.title = `${CONFIG.campusUrl}${clase.campus_id}`;
+            campusButton.style.fontWeight = 'bold';
+            campusButton.style.backgroundColor = '#28a745';
+            campusButton.style.color = 'white';
+            elements.documentsList.appendChild(campusButton);
+        }
+    }
+
+    function openCampusUrl(clase) {
+        if (clase.campus_id && CONFIG.campusUrl) {
+            const campusUrl = `${CONFIG.campusUrl}${clase.campus_id}`;
+            console.log('Opening campus URL in new tab:', campusUrl);
+            window.open(campusUrl, '_blank');
+            return false;
+        } else {
+            console.error('Campus info missing - campus_id:', clase.campus_id, 'campusUrl:', CONFIG.campusUrl);
+            showError('No se encontró información del campus para esta clase');
+        }
+    }
+
+    function loadCampusContent(url) {
+        clearPlayer();
+        
+        const iframeContainer = document.createElement('div');
+        iframeContainer.style.width = '100%';
+        iframeContainer.style.height = '100%';
+        iframeContainer.style.backgroundColor = '#f8f9fa';
+        iframeContainer.style.borderRadius = '8px';
+        iframeContainer.style.overflow = 'hidden';
+        iframeContainer.style.position = 'relative';
+        
+        // Loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.textContent = 'Cargando contenido del campus...';
+        loadingIndicator.style.position = 'absolute';
+        loadingIndicator.style.top = '50%';
+        loadingIndicator.style.left = '50%';
+        loadingIndicator.style.transform = 'translate(-50%, -50%)';
+        loadingIndicator.style.padding = '20px';
+        loadingIndicator.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        loadingIndicator.style.borderRadius = '8px';
+        loadingIndicator.style.zIndex = '100';
+        loadingIndicator.style.textAlign = 'center';
+        
+        const iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.width = '100%';
+        iframe.height = '100%';
+        iframe.frameBorder = '0';
+        iframe.allowFullscreen = true;
+        iframe.style.border = 'none';
+        iframe.style.opacity = '0';
+        
+        // Show loading indicator until iframe loads
+        iframe.onload = function() {
+            iframe.style.opacity = '1';
+            iframeContainer.removeChild(loadingIndicator);
+        };
+        
+        iframe.onerror = function() {
+            loadingIndicator.textContent = 'Error al cargar el contenido del campus';
+            loadingIndicator.style.color = '#dc3545';
+            
+            const retryButton = document.createElement('button');
+            retryButton.textContent = 'Reintentar';
+            retryButton.style.marginTop = '10px';
+            retryButton.style.padding = '5px 15px';
+            retryButton.onclick = () => loadCampusContent(url);
+            loadingIndicator.appendChild(document.createElement('br'));
+            loadingIndicator.appendChild(retryButton);
+        };
+        
+        const header = document.createElement('div');
+        header.style.padding = '10px';
+        header.style.backgroundColor = '#f0f0f0';
+        header.style.borderBottom = '1px solid #ddd';
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
+        
+        const title = document.createElement('strong');
+        title.textContent = 'Contenido del Campus Virtual';
+        
+        const closeButton = document.createElement('button');
+        closeButton.textContent = '✕ Cerrar';
+        closeButton.style.padding = '5px 10px';
+        closeButton.style.backgroundColor = '#dc3545';
+        closeButton.style.color = 'white';
+        closeButton.style.border = 'none';
+        closeButton.style.borderRadius = '3px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.onclick = () => clearPlayer();
+        
+        header.appendChild(title);
+        header.appendChild(closeButton);
+        
+        iframeContainer.appendChild(header);
+        iframeContainer.appendChild(iframe);
+        iframeContainer.appendChild(loadingIndicator);
+        
+        elements.youtubePlayer.appendChild(iframeContainer);
+        state.currentPlayer = iframeContainer;
     }
 
     function createDocumentButton(text, onClick) {
