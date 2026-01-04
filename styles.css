@@ -53,6 +53,13 @@ header h1 {
     width: 100%;
     max-width: 500px;
     transition: border-color var(--transition-speed) ease;
+    height: auto;
+    min-height: 50px;
+    line-height: 1.4;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dropdown:focus {
@@ -60,24 +67,88 @@ header h1 {
     border-color: var(--secondary-color);
 }
 
+.dropdown option {
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+    display: block;
+    min-height: 35px;
+    padding: 8px 12px;
+}
+
+/* Mejora para el selector en el sidebar */
+.sidebar .dropdown {
+    width: 100%;
+    max-width: none;
+    min-height: 55px;
+}
+
+/* Estilo para el texto largo en 2 líneas */
+.dropdown option {
+    display: block;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.3;
+    padding: 6px 10px;
+    min-height: 35px;
+}
+
+/* Mejora para el valor seleccionado */
+.dropdown {
+    overflow: visible;
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+    height: auto;
+    min-height: 50px;
+    padding: 12px 10px;
+}
+
+/* Asegurar que el texto seleccionado sea visible */
+.dropdown::-webkit-input-placeholder {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.dropdown:-moz-placeholder {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.dropdown::-moz-placeholder {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.dropdown:-ms-input-placeholder {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
 .video-container {
     margin: 30px 0;
     text-align: center;
     transition: opacity var(--transition-speed) ease;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
 }
 
 #youtube-player {
     width: 100%;
-    max-width: 800px;
-    height: 450px;
-    margin: 0 auto;
+    height: 100%;
     background-color: #000;
     border-radius: 8px;
     overflow: hidden;
 }
 
 .sidebar {
-    width: 300px;
+    min-width: 250px;
+    max-width: 400px;
+    width: 25%;
     background-color: white;
     border-right: 1px solid #ddd;
     padding: 15px;
@@ -202,30 +273,46 @@ header h1 {
     }
 }
 
-/* Maximize video container */
-.video-container {
-    width: 100%;
-    height: calc(100vh - 40px);
-    text-align: center;
-    transition: opacity var(--transition-speed) ease;
-    margin: 0;
-}
-
-#youtube-player {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    background-color: #000;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
+/* Main content area */
 main {
     flex: 1;
     padding: 0;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Allow shrinking */
+}
+
+/* Class title container */
+.class-title-container {
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 15px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+}
+
+.class-title-container h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Responsive design for class title */
+@media (max-width: 768px) {
+    .class-title-container h2 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .class-title-container h2 {
+        font-size: 1rem;
+    }
 }
 
 /* Sidebar selector styling */

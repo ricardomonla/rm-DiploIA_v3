@@ -1,171 +1,228 @@
 // Main application logic for the dynamic web page
 document.addEventListener('DOMContentLoaded', function() {
-    const classSelector = document.getElementById('class-selector');
-    const youtubePlayer = document.getElementById('youtube-player');
-    const documentsList = document.getElementById('documents-list');
-    
-    let classesData = [];
-    let currentPlayer = null;
-    
-    // Load classes data from subdirectories
+    // === CONFIGURATION & CONSTANTS ===
+    const CONFIG = {
+        allowedExtensions: ['.pdf', '.md', '.yaml', '.yml'],
+        youtubeBaseUrl: 'https://www.youtube.com/embed/',
+        apiEndpoints: {
+            docusConfig: 'docus.json'
+        }
+    };
+
+    // === STATE MANAGEMENT ===
+    const state = {
+        classesData: { clases: [] },
+        currentPlayer: null,
+        selectedClass: null,
+        docusDir: '' // Will be loaded from docus.json
+    };
+
+    // === DOM ELEMENTS ===
+    const elements = {
+        classSelector: document.getElementById('class-selector'),
+        youtubePlayer: document.getElementById('youtube-player'),
+        documentsList: document.getElementById('documents-list'),
+        selectedClassTitle: document.getElementById('selected-class-title')
+    };
+
+    // === INITIALIZATION ===
+    init();
+
+    // === MAIN FUNCTIONS ===
+    async function init() {
+        try {
+            await loadDocusConfig();
+            await loadClassesData();
+            populateDropdown();
+            autoSelectClass();
+            setupEventListeners();
+        } catch (error) {
+            console.error('Initialization error:', error);
+            showError('Error al inicializar la aplicación');
+        }
+    }
+
+    function setupEventListeners() {
+        elements.classSelector.addEventListener('change', handleClassSelection);
+        elements.classSelector.addEventListener('change', (e) => {
+            localStorage.setItem('selectedClass', e.target.value);
+        });
+    }
+
+    // === CONFIGURATION LOADING ===
+    async function loadDocusConfig() {
+        try {
+            const response = await fetch(CONFIG.apiEndpoints.docusConfig);
+            const config = await response.json();
+            
+            state.docusDir = config.docus_dir;
+            CONFIG.allowedExtensions = config.allowed_extensions || ['.pdf', '.md', '.yaml', '.yml'];
+            
+            console.log('Docus config loaded:', {
+                docusDir: state.docusDir,
+                allowedExtensions: CONFIG.allowedExtensions
+            });
+            
+        } catch (error) {
+            console.error('Error loading docus config:', error);
+        }
+    }
+
+    // === DATA LOADING ===
     async function loadClassesData() {
         try {
             console.log('Loading classes data from subdirectories...');
             
-            // Fetch the list of subdirectories from the server
-            const response = await fetch('Clases_DiploIA/');
-            if (!response.ok) {
-                throw new Error('Failed to load classes directory');
-            }
-            const html = await response.text();
+            const subdirectories = await fetchSubdirectories();
             
-            // Use a simpler approach to extract subdirectory names
-            const subdirectories = [];
-            const regex = /href="([^"]+)"/g;
-            let match;
-            while ((match = regex.exec(html)) !== null) {
-                const href = match[1];
-                if (href && href.endsWith('/') && !href.includes('..')) {
-                    const dirName = href.replace('/', '');
-                    if (dirName.startsWith('C') && dirName.includes('_')) {
-                        // Decode URL-encoded characters
-                        const decodedDirName = decodeURIComponent(dirName);
-                        subdirectories.push(decodedDirName);
-                    }
-                }
-            }
+            state.classesData.clases = await Promise.all(
+                subdirectories.map(dirName => loadClassData(dirName))
+            );
             
-            console.log('Found subdirectories:', subdirectories);
+            console.log('Classes data loaded:', state.classesData);
             
-            // Load allowed extensions from docus.json
-            const docusResponse = await fetch('docus.json');
-            const docusConfig = await docusResponse.json();
-            const allowedExtensions = docusConfig.allowed_extensions || ['.pdf', '.md'];
-            console.log('Allowed extensions:', allowedExtensions);
-            
-            // Load data for each subdirectory
-            classesData = { clases: [] };
-            for (const dirName of subdirectories) {
-                try {
-                    console.log(`Loading data for ${dirName}...`);
-                    const dataResponse = await fetch(`Clases_DiploIA/${dirName}/data.json`);
-                    if (dataResponse.ok) {
-                        const data = await dataResponse.json();
-                        console.log(`Data for ${dirName}:`, data);
-                        
-                        // Fetch the list of documents in the subdirectory
-                        const docsResponse = await fetch(`Clases_DiploIA/${dirName}/`);
-                        if (docsResponse.ok) {
-                            const docsHtml = await docsResponse.text();
-                            const docus = [];
-                            const docsRegex = /href="([^"]+)"/g;
-                            let docsMatch;
-                            while ((docsMatch = docsRegex.exec(docsHtml)) !== null) {
-                                const docHref = docsMatch[1];
-                                if (docHref && !docHref.includes('..') && !docHref.endsWith('/')) {
-                                    // Filter documents based on allowed extensions
-                                    const isAllowed = allowedExtensions.some(ext => docHref.endsWith(ext));
-                                    if (isAllowed) {
-                                        // Decode URL-encoded characters in document names
-                                        const decodedDocHref = decodeURIComponent(docHref);
-                                        docus.push(decodedDocHref);
-                                    }
-                                }
-                            }
-                            
-                            classesData.clases.push({
-                                nombre: dirName,
-                                youtube_id: data.youtube_id || '',
-                                campus_id: data.campus_id || '',
-                                docus: docus
-                            });
-                            
-                            console.log(`Loaded data for ${dirName}:`, {
-                                nombre: dirName,
-                                youtube_id: data.youtube_id || '',
-                                campus_id: data.campus_id || '',
-                                docus: docus
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error(`Error loading data for ${dirName}:`, error);
-                }
-            }
-            
-            console.log('Classes data:', classesData);
-            if (classesData.clases && classesData.clases.length > 0) {
-                populateDropdown();
-            } else {
-                console.error('No classes data available');
-                showError('No classes data available');
-            }
         } catch (error) {
             console.error('Error loading classes data:', error);
-            showError('Error loading classes data: ' + error.message);
+            throw error;
         }
     }
-    
-    // Populate the dropdown selector with class options
+
+    async function fetchSubdirectories() {
+        const response = await fetch(state.docusDir);
+        if (!response.ok) throw new Error('Failed to load classes directory');
+        
+        const html = await response.text();
+        const regex = /href="([^"]+)"/g;
+        const subdirectories = [];
+        let match;
+        
+        while ((match = regex.exec(html)) !== null) {
+            const href = match[1];
+            if (href && href.endsWith('/') && !href.includes('..')) {
+                const dirName = decodeURIComponent(href.replace('/', ''));
+                if (dirName.startsWith('C') && dirName.includes('_')) {
+                    subdirectories.push(dirName);
+                }
+            }
+        }
+        
+        return subdirectories;
+    }
+
+    async function loadClassData(dirName) {
+        try {
+            const [dataResponse, docsResponse] = await Promise.all([
+                fetch(`${state.docusDir}${dirName}/data.json`),
+                fetch(`${state.docusDir}${dirName}/`)
+            ]);
+
+            const data = dataResponse.ok ? await dataResponse.json() : {};
+            const docs = docsResponse.ok ? await extractDocuments(docsResponse) : [];
+
+            return {
+                nombre: dirName,
+                youtube_id: data.youtube_id || '',
+                campus_id: data.campus_id || '',
+                class_number: data.class_number || '',
+                class_name: data.class_name || '',
+                class_date: data.class_date || '',
+                docus: docs
+            };
+
+        } catch (error) {
+            console.error(`Error loading data for ${dirName}:`, error);
+            return {
+                nombre: dirName,
+                youtube_id: '',
+                campus_id: '',
+                class_number: '',
+                class_name: '',
+                docus: []
+            };
+        }
+    }
+
+    async function extractDocuments(response) {
+        const html = await response.text();
+        const regex = /href="([^"]+)"/g;
+        const documents = [];
+        let match;
+
+        while ((match = regex.exec(html)) !== null) {
+            const docHref = match[1];
+            if (docHref && !docHref.includes('..') && !docHref.endsWith('/')) {
+                const isAllowed = CONFIG.allowedExtensions.some(ext => docHref.endsWith(ext));
+                if (isAllowed) {
+                    documents.push(decodeURIComponent(docHref));
+                }
+            }
+        }
+
+        return documents;
+    }
+
+    // === UI MANAGEMENT ===
     function populateDropdown() {
-        console.log('Populating dropdown with classes data:', classesData);
-        classSelector.innerHTML = '<option value="">Seleccione una clase</option>';
+        elements.classSelector.innerHTML = '<option value="">Seleccione una clase</option>';
         
-        if (classesData.clases && classesData.clases.length > 0) {
-            classesData.clases.forEach(clase => {
-                const option = document.createElement('option');
-                option.value = clase.nombre;
-                option.textContent = formatClassName(clase.nombre);
-                classSelector.appendChild(option);
-                console.log(`Added option for ${clase.nombre}`);
-            });
-        } else {
-            console.error('No classes data available');
+        if (state.classesData.clases?.length > 0) {
+            for (const clase of state.classesData.clases) {
+                const option = createClassOption(clase);
+                elements.classSelector.appendChild(option);
+            }
         }
-        
-        // Add event listener for dropdown change
-        classSelector.addEventListener('change', handleClassSelection);
-        
-        // Auto-select first element or saved selection
-        autoSelectClass();
     }
-    
-    // Auto-select first element or saved selection
+
+    function createClassOption(clase) {
+        const option = document.createElement('option');
+        option.value = clase.nombre;
+        option.textContent = formatClassName(clase);
+        return option;
+    }
+
+    function formatClassName(clase) {
+        if (clase.class_number && clase.class_name) {
+            const classNum = String(clase.class_number).padStart(2, '0');
+            return `C${classNum} - ${clase.class_name}`;
+        }
+        return clase.nombre.replace('C', 'Clase ').replace(/_/g, ' ');
+    }
+
+    function updateClassTitle(title) {
+        if (elements.selectedClassTitle) {
+            elements.selectedClassTitle.textContent = title;
+        }
+    }
+
     function autoSelectClass() {
         const savedClass = localStorage.getItem('selectedClass');
         if (savedClass) {
-            classSelector.value = savedClass;
+            elements.classSelector.value = savedClass;
             handleClassSelection();
-        } else if (classesData.clases && classesData.clases.length > 0) {
-            // Select first class if no saved selection exists
-            const firstClass = classesData.clases[0].nombre;
-            classSelector.value = firstClass;
+        } else if (state.classesData.clases?.[0]) {
+            elements.classSelector.value = state.classesData.clases[0].nombre;
             handleClassSelection();
         }
     }
-    
-    // Format class name for display (remove prefix and underscores)
-    function formatClassName(name) {
-        return name.replace('C', 'Clase ').replace(/_/g, ' ');
-    }
-    
-    // Handle class selection
+
     function handleClassSelection() {
-        const selectedClassName = classSelector.value;
+        const selectedClassName = elements.classSelector.value;
         if (!selectedClassName) {
             clearPlayer();
             clearDocuments();
+            updateClassTitle('Seleccionar una clase');
             return;
         }
         
-        const selectedClass = classesData.clases.find(clase => clase.nombre === selectedClassName);
+        const selectedClass = state.classesData.clases.find(clase => clase.nombre === selectedClassName);
         if (selectedClass) {
+            updateClassTitle(formatClassName(selectedClass));
             loadYouTubeVideo(selectedClass);
             displayDocuments(selectedClass);
         }
     }
-    
-    // Load YouTube video
+
+    // === PLAYER MANAGEMENT ===
     function loadYouTubeVideo(clase) {
         clearPlayer();
         
@@ -174,189 +231,168 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Use hardcoded YouTube base URL
-        const youtubeBaseUrl = 'https://youtu.be/';
-        const youtubeUrl = youtubeBaseUrl + clase.youtube_id;
-        
-        // Create YouTube iframe with lazy loading
+        const iframe = createYouTubeIframe(clase.youtube_id);
+        elements.youtubePlayer.appendChild(iframe);
+        state.currentPlayer = iframe;
+    }
+
+    function createYouTubeIframe(videoId) {
         const iframe = document.createElement('iframe');
         iframe.width = '100%';
         iframe.height = '100%';
-        iframe.src = `https://www.youtube.com/embed/${clase.youtube_id}?enablejsapi=1`;
+        iframe.src = `${CONFIG.youtubeBaseUrl}${videoId}?enablejsapi=1`;
         iframe.frameBorder = '0';
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
         iframe.allowFullscreen = true;
         iframe.loading = 'lazy';
-        
-        youtubePlayer.appendChild(iframe);
-        currentPlayer = iframe;
+        return iframe;
     }
-    
-    // Display associated documents in sidebar as buttons
+
+    function clearPlayer() {
+        if (state.currentPlayer && elements.youtubePlayer.contains(state.currentPlayer)) {
+            elements.youtubePlayer.removeChild(state.currentPlayer);
+            state.currentPlayer = null;
+        }
+    }
+
+    // === DOCUMENT MANAGEMENT ===
     function displayDocuments(clase) {
         clearDocuments();
         
-        if (!clase.docus || clase.docus.length === 0) {
-            const noDocs = document.createElement('p');
-            noDocs.textContent = 'No hay documentos disponibles para esta clase.';
-            noDocs.style.color = '#666';
-            noDocs.style.fontStyle = 'italic';
-            documentsList.appendChild(noDocs);
+        if (!clase.docus?.length) {
+            const noDocs = createNoDocumentsMessage();
+            elements.documentsList.appendChild(noDocs);
         }
         
-        // Add YouTube video button
-        const youtubeButton = document.createElement('button');
-        youtubeButton.className = 'document-item';
-        youtubeButton.textContent = '📺 Ver Video';
-        youtubeButton.onclick = () => {
-            loadYouTubeVideo(clase);
-        };
-        documentsList.appendChild(youtubeButton);
+        if (clase.youtube_id?.trim()) {
+            const youtubeButton = createDocumentButton(`📺 Clase ${clase.class_date}`, () => loadYouTubeVideo(clase));
+            elements.documentsList.appendChild(youtubeButton);
+        }
         
-        // Add document buttons
-        if (clase.docus && clase.docus.length > 0) {
-            clase.docus.forEach(doc => {
-                const docButton = document.createElement('button');
-                docButton.className = 'document-item';
-                docButton.textContent = getDocumentIcon(doc) + ' ' + formatDocumentName(doc);
-                docButton.onclick = () => previewDocument(clase.nombre, doc);
-                
-                documentsList.appendChild(docButton);
-            });
+        if (clase.docus?.length > 0) {
+            for (const doc of clase.docus) {
+                const docButton = createDocumentButton(
+                    `${getDocumentIcon(doc)} ${formatDocumentName(doc)}`,
+                    () => previewDocument(clase.nombre, doc)
+                );
+                elements.documentsList.appendChild(docButton);
+            }
         }
     }
-    
-    // Preview document in the video player panel
+
+    function createDocumentButton(text, onClick) {
+        const button = document.createElement('button');
+        button.className = 'document-item';
+        button.textContent = text;
+        button.onclick = onClick;
+        return button;
+    }
+
+    function createNoDocumentsMessage() {
+        const message = document.createElement('p');
+        message.textContent = 'No hay documentos disponibles para esta clase.';
+        message.style.color = '#666';
+        message.style.fontStyle = 'italic';
+        return message;
+    }
+
     function previewDocument(className, docName) {
         clearPlayer();
         
-        // Use local symbolic link to access documents
-        const docPath = 'Clases_DiploIA/' + className + '/' + docName;
+        const docPath = `${state.docusDir}${className}/${docName}`;
         
         if (docName.endsWith('.pdf')) {
-            // Preview PDF using embed in a separate container
-            const pdfContainer = document.createElement('div');
-            pdfContainer.style.width = '100%';
-            pdfContainer.style.height = '100%';
-            pdfContainer.style.backgroundColor = '#f8f9fa';
-            pdfContainer.style.borderRadius = '8px';
-            pdfContainer.style.overflow = 'hidden';
-            
-            const pdfEmbed = document.createElement('embed');
-            pdfEmbed.src = docPath;
-            pdfEmbed.type = 'application/pdf';
-            pdfEmbed.width = '100%';
-            pdfEmbed.height = '100%';
-            
-            pdfContainer.appendChild(pdfEmbed);
-            youtubePlayer.appendChild(pdfContainer);
-            currentPlayer = pdfContainer;
+            loadPDFDocument(docPath);
         } else if (docName.endsWith('.md')) {
-            // Preview Markdown files with rich formatting, edit on demand
-            fetch(docPath)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load document');
-                    }
-                    return response.text();
-                })
-                .then(markdown => {
-                    createMarkdownViewerWithEdit(className, docName, markdown);
-                })
-                .catch(error => {
-                    showError('Error loading document: ' + error.message);
-                });
+            loadMarkdownDocument(docPath, className, docName);
         } else if (docName.endsWith('.yaml') || docName.endsWith('.yml')) {
-            // Preview YAML files with syntax highlighting
-            fetch(docPath)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load document');
-                    }
-                    return response.text();
-                })
-                .then(text => {
-                    const pre = document.createElement('pre');
-                    pre.textContent = text;
-                    pre.style.whiteSpace = 'pre-wrap';
-                    pre.style.padding = '20px';
-                    pre.style.backgroundColor = '#f8f9fa';
-                    pre.style.borderRadius = '5px';
-                    pre.style.height = '100%';
-                    pre.style.overflow = 'auto';
-                    pre.style.fontFamily = 'monospace';
-                    pre.style.color = '#333';
-                    youtubePlayer.appendChild(pre);
-                    currentPlayer = pre;
-                })
-                .catch(error => {
-                    showError('Error loading document: ' + error.message);
-                });
+            loadYAMLDocument(docPath);
         } else {
             showError('Document type not supported for preview');
         }
+    }
+
+    function loadPDFDocument(docPath) {
+        const container = document.createElement('div');
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.backgroundColor = '#f8f9fa';
+        container.style.borderRadius = '8px';
+        container.style.overflow = 'hidden';
         
-        // Add back button
-        addBackToVideoButton(className);
+        const embed = document.createElement('embed');
+        embed.src = docPath;
+        embed.type = 'application/pdf';
+        embed.width = '100%';
+        embed.height = '100%';
+        
+        container.appendChild(embed);
+        elements.youtubePlayer.appendChild(container);
+        state.currentPlayer = container;
     }
-    
-    // Remove back to video button functionality - now handled by sidebar
-    function addBackToVideoButton(className) {
-        // This function is no longer needed as switching is handled by sidebar buttons
+
+    async function loadMarkdownDocument(docPath, className, docName) {
+        try {
+            const response = await fetch(docPath);
+            if (!response.ok) throw new Error('Failed to load document');
+            
+            const markdown = await response.text();
+            createMarkdownViewerWithEdit(className, docName, markdown);
+        } catch (error) {
+            showError('Error loading document: ' + error.message);
+        }
     }
-    
-    // Get document icon based on file type
-    function getDocumentIcon(filename) {
-        if (filename.endsWith('.pdf')) return '📄';
-        if (filename.endsWith('.md')) return '📝';
-        if (filename.endsWith('.yaml') || filename.endsWith('.yml')) return '⚙️';
-        return '📁';
+
+    async function loadYAMLDocument(docPath) {
+        try {
+            const response = await fetch(docPath);
+            if (!response.ok) throw new Error('Failed to load document');
+            
+            const text = await response.text();
+            const pre = document.createElement('pre');
+            pre.textContent = text;
+            pre.style.whiteSpace = 'pre-wrap';
+            pre.style.padding = '20px';
+            pre.style.backgroundColor = '#f8f9fa';
+            pre.style.borderRadius = '5px';
+            pre.style.height = '100%';
+            pre.style.overflow = 'auto';
+            pre.style.fontFamily = 'monospace';
+            pre.style.color = '#333';
+            
+            elements.youtubePlayer.appendChild(pre);
+            state.currentPlayer = pre;
+        } catch (error) {
+            showError('Error loading document: ' + error.message);
+        }
     }
-    
-    // Format document name for display
-    function formatDocumentName(filename) {
-        return filename.replace(/_/g, ' ');
-    }
-    
-    // Simple Markdown to HTML converter
-    function convertMarkdownToHTML(markdown) {
-        return markdown
-            // Headers
-            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-            .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
-            // Bold and italic
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            // Links
-            .replace(/\\[(.*?)\\]\\((.*?)\\)/g, '<a href="$2" target="_blank">$1</a>')
-            // Lists
-            .replace(/^\* (.*$)/gm, '<li>$1</li>')
-            .replace(/^\- (.*$)/gm, '<li>$1</li>')
-            // Paragraphs
-            .replace(/^(?!<[a-z])\S.*$/gm, '<p>$&</p>')
-            // Code blocks
-            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            // Horizontal rules
-            .replace(/^---$/gm, '<hr>')
-            // Clean up multiple newlines
-            .replace(/\n\n\n+/g, '\n\n');
-    }
-    
-    // Create Markdown viewer with edit button (shows rich view by default)
+
+    // === MARKDOWN EDITOR ===
     function createMarkdownViewerWithEdit(className, docName, markdownContent) {
         clearPlayer();
         
-        const viewerContainer = document.createElement('div');
-        viewerContainer.className = 'markdown-viewer-container';
-        viewerContainer.style.display = 'flex';
-        viewerContainer.style.flexDirection = 'column';
-        viewerContainer.style.height = '100%';
-        viewerContainer.style.gap = '10px';
+        const viewerContainer = createMarkdownContainer();
+        const actionBar = createActionBar(className, docName, markdownContent);
+        const preview = createMarkdownPreview(markdownContent);
         
-        // Create action bar with edit button
+        viewerContainer.appendChild(actionBar);
+        viewerContainer.appendChild(preview);
+        
+        elements.youtubePlayer.appendChild(viewerContainer);
+        state.currentPlayer = viewerContainer;
+    }
+
+    function createMarkdownContainer() {
+        const container = document.createElement('div');
+        container.className = 'markdown-viewer-container';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.height = '100%';
+        container.style.gap = '10px';
+        return container;
+    }
+
+    function createActionBar(className, docName, markdownContent) {
         const actionBar = document.createElement('div');
         actionBar.style.display = 'flex';
         actionBar.style.justifyContent = 'flex-end';
@@ -364,21 +400,15 @@ document.addEventListener('DOMContentLoaded', function() {
         actionBar.style.backgroundColor = '#f0f0f0';
         actionBar.style.borderRadius = '5px';
         
-        const editButton = document.createElement('button');
-        editButton.textContent = '✏️ Editar Markdown';
-        editButton.style.padding = '8px 15px';
-        editButton.style.backgroundColor = 'var(--primary-color)';
-        editButton.style.color = 'white';
-        editButton.style.border = 'none';
-        editButton.style.borderRadius = '5px';
-        editButton.style.cursor = 'pointer';
-        editButton.addEventListener('click', () => {
+        const editButton = createToolbarButton('✏️ Editar Markdown', () => {
             createMarkdownEditor(className, docName, markdownContent);
         });
         
         actionBar.appendChild(editButton);
-        
-        // Create rich Markdown preview
+        return actionBar;
+    }
+
+    function createMarkdownPreview(markdownContent) {
         const preview = document.createElement('div');
         preview.className = 'markdown-viewer';
         preview.style.flex = '1';
@@ -387,30 +417,33 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.style.borderRadius = '5px';
         preview.style.overflow = 'auto';
         preview.style.textAlign = 'left';
-        
-        // Convert markdown to HTML
-        const htmlContent = convertMarkdownToHTML(markdownContent);
-        preview.innerHTML = htmlContent;
-        
-        viewerContainer.appendChild(actionBar);
-        viewerContainer.appendChild(preview);
-        
-        youtubePlayer.appendChild(viewerContainer);
-        currentPlayer = viewerContainer;
+        preview.innerHTML = convertMarkdownToHTML(markdownContent);
+        return preview;
     }
-    
-    // Create Markdown editor with preview and save functionality
+
     function createMarkdownEditor(className, docName, markdownContent) {
         clearPlayer();
         
-        const editorContainer = document.createElement('div');
-        editorContainer.className = 'markdown-editor-container';
-        editorContainer.style.display = 'flex';
-        editorContainer.style.flexDirection = 'column';
-        editorContainer.style.height = '100%';
-        editorContainer.style.gap = '10px';
+        const editorContainer = createMarkdownContainer();
+        const toolbar = createEditorToolbar(className, docName);
+        const editorPreviewContainer = createEditorPreviewContainer(className, docName);
         
-        // Create toolbar
+        // Initialize editor with content
+        const editor = editorPreviewContainer.querySelector('.markdown-editor');
+        editor.value = markdownContent;
+        
+        // Initial preview
+        const preview = editorPreviewContainer.querySelector('.markdown-preview');
+        preview.innerHTML = convertMarkdownToHTML(markdownContent);
+        
+        editorContainer.appendChild(toolbar);
+        editorContainer.appendChild(editorPreviewContainer);
+        
+        elements.youtubePlayer.appendChild(editorContainer);
+        state.currentPlayer = editorContainer;
+    }
+
+    function createEditorToolbar(className, docName) {
         const toolbar = document.createElement('div');
         toolbar.className = 'markdown-toolbar';
         toolbar.style.display = 'flex';
@@ -419,34 +452,32 @@ document.addEventListener('DOMContentLoaded', function() {
         toolbar.style.backgroundColor = '#f0f0f0';
         toolbar.style.borderRadius = '5px';
         
-        // Add formatting buttons
-        const boldBtn = createToolbarButton('🔤', () => wrapText('**', '**'));
-        const italicBtn = createToolbarButton('🔤', () => wrapText('*', '*'));
-        const linkBtn = createToolbarButton('🔗', () => wrapText('[', '](url)'));
-        const headerBtn = createToolbarButton('📜', () => insertText('# '));
-        const codeBtn = createToolbarButton('💻', () => wrapText('`', '`'));
-        const saveBtn = createToolbarButton('💾', () => saveMarkdownFile(className, docName, editor.value));
-        const backBtn = createToolbarButton('🔙', () => createMarkdownViewerWithEdit(className, docName, editor.value));
+        const buttons = [
+            { text: '🔤', action: () => wrapSelectedText('**', '**') },
+            { text: '🔤', action: () => wrapSelectedText('*', '*') },
+            { text: '🔗', action: () => wrapSelectedText('[', '](url)') },
+            { text: '📜', action: () => insertAtCursor('# ') },
+            { text: '💻', action: () => wrapSelectedText('`', '`') },
+            { text: '💾', action: () => saveMarkdownFile(className, docName) },
+            { text: '🔙', action: () => backToViewer(className, docName) }
+        ];
         
-        toolbar.appendChild(boldBtn);
-        toolbar.appendChild(italicBtn);
-        toolbar.appendChild(linkBtn);
-        toolbar.appendChild(headerBtn);
-        toolbar.appendChild(codeBtn);
-        toolbar.appendChild(saveBtn);
-        toolbar.appendChild(backBtn);
+        for (const btn of buttons) {
+            toolbar.appendChild(createToolbarButton(btn.text, btn.action));
+        }
         
-        // Create editor and preview container
-        const editorPreviewContainer = document.createElement('div');
-        editorPreviewContainer.style.display = 'flex';
-        editorPreviewContainer.style.flex = '1';
-        editorPreviewContainer.style.gap = '10px';
-        editorPreviewContainer.style.overflow = 'hidden';
+        return toolbar;
+    }
+
+    function createEditorPreviewContainer(className, docName) {
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.flex = '1';
+        container.style.gap = '10px';
+        container.style.overflow = 'hidden';
         
-        // Create editor
         const editor = document.createElement('textarea');
         editor.className = 'markdown-editor';
-        editor.value = markdownContent;
         editor.style.flex = '1';
         editor.style.padding = '10px';
         editor.style.fontFamily = 'monospace';
@@ -456,7 +487,6 @@ document.addEventListener('DOMContentLoaded', function() {
         editor.style.resize = 'none';
         editor.style.overflow = 'auto';
         
-        // Create preview
         const preview = document.createElement('div');
         preview.className = 'markdown-preview';
         preview.style.flex = '1';
@@ -467,113 +497,124 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.style.overflow = 'auto';
         preview.style.textAlign = 'left';
         
-        // Update preview when editor content changes
         editor.addEventListener('input', () => {
-            const htmlContent = convertMarkdownToHTML(editor.value);
-            preview.innerHTML = htmlContent;
+            preview.innerHTML = convertMarkdownToHTML(editor.value);
         });
         
-        // Initial preview
-        const initialHTML = convertMarkdownToHTML(markdownContent);
-        preview.innerHTML = initialHTML;
-        
-        editorPreviewContainer.appendChild(editor);
-        editorPreviewContainer.appendChild(preview);
-        
-        editorContainer.appendChild(toolbar);
-        editorContainer.appendChild(editorPreviewContainer);
-        
-        youtubePlayer.appendChild(editorContainer);
-        currentPlayer = editorContainer;
-        
-        // Helper function to create toolbar buttons
-        function createToolbarButton(text, onClick) {
-            const btn = document.createElement('button');
-            btn.textContent = text;
-            btn.style.padding = '5px 10px';
-            btn.style.backgroundColor = 'var(--primary-color)';
-            btn.style.color = 'white';
-            btn.style.border = 'none';
-            btn.style.borderRadius = '3px';
-            btn.style.cursor = 'pointer';
-            btn.addEventListener('click', onClick);
-            return btn;
-        }
-        
-        // Helper function to wrap selected text
-        function wrapText(prefix, suffix) {
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            const selectedText = editor.value.substring(start, end);
-            const newText = prefix + selectedText + suffix;
-            editor.setRangeText(newText, start, end, 'end');
-        }
-        
-        // Helper function to insert text at cursor
-        function insertText(text) {
-            const pos = editor.selectionStart;
-            editor.setRangeText(text, pos, pos, 'end');
-        }
-        
-        // Save function
-        function saveMarkdownFile(className, docName, content) {
-            const docPath = 'Clases_DiploIA/' + className + '/' + docName;
-            
-            // Create a blob with the content
-            const blob = new Blob([content], { type: 'text/markdown' });
-            
-            // Create download link
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = docName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showError('Archivo guardado como: ' + docName);
-        }
+        container.appendChild(editor);
+        container.appendChild(preview);
+        return container;
     }
-    
-    // Clear YouTube player
-    function clearPlayer() {
-        if (currentPlayer) {
-            youtubePlayer.removeChild(currentPlayer);
-            currentPlayer = null;
-        }
+
+    function createToolbarButton(text, onClick) {
+        const btn = document.createElement('button');
+        btn.textContent = text;
+        btn.style.padding = '5px 10px';
+        btn.style.backgroundColor = 'var(--primary-color)';
+        btn.style.color = 'white';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '3px';
+        btn.style.cursor = 'pointer';
+        btn.addEventListener('click', onClick);
+        return btn;
     }
-    
-    // Clear documents list
+
+    // === UTILITIES ===
+    function wrapSelectedText(prefix, suffix) {
+        const editor = document.querySelector('.markdown-editor');
+        if (!editor) return;
+        
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        const selectedText = editor.value.substring(start, end);
+        const newText = prefix + selectedText + suffix;
+        editor.setRangeText(newText, start, end, 'end');
+    }
+
+    function insertAtCursor(text) {
+        const editor = document.querySelector('.markdown-editor');
+        if (!editor) return;
+        
+        const pos = editor.selectionStart;
+        editor.setRangeText(text, pos, pos, 'end');
+    }
+
+    function saveMarkdownFile(className, docName) {
+        const editor = document.querySelector('.markdown-editor');
+        if (!editor) return;
+        
+        const content = editor.value;
+        const blob = new Blob([content], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = docName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showError('Archivo guardado como: ' + docName);
+    }
+
+    function backToViewer(className, docName) {
+        const editor = document.querySelector('.markdown-editor');
+        if (!editor) return;
+        
+        createMarkdownViewerWithEdit(className, docName, editor.value);
+    }
+
+    function getDocumentIcon(filename) {
+        const icons = {
+            '.pdf': '📄',
+            '.md': '📝',
+            '.yaml': '⚙️',
+            '.yml': '⚙️'
+        };
+        const ext = filename.substring(filename.lastIndexOf('.'));
+        return icons[ext] || '📁';
+    }
+
+    function formatDocumentName(filename) {
+        return filename.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+    }
+
+    function convertMarkdownToHTML(markdown) {
+        return markdown
+            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+            .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\\[(.*?)\\]\\((.*?)\\)/g, '<a href="$2" target="_blank">$1</a>')
+            .replace(/^\* (.*$)/gm, '<li>$1</li>')
+            .replace(/^\- (.*$)/gm, '<li>$1</li>')
+            .replace(/^(?!<[a-z])\S.*$/gm, '<p>$&</p>')
+            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/^---$/gm, '<hr>')
+            .replace(/\n\n\n+/g, '\n\n');
+    }
+
     function clearDocuments() {
-        documentsList.innerHTML = '';
+        elements.documentsList.innerHTML = '';
     }
-    
-    // Show error message
+
     function showError(message) {
         const errorElement = document.createElement('div');
         errorElement.className = 'error-message';
         errorElement.textContent = message;
         
-        // Insert error message before the video container
         const videoContainer = document.querySelector('.video-container');
         if (videoContainer) {
             videoContainer.parentNode.insertBefore(errorElement, videoContainer);
         }
         
-        // Remove error after 5 seconds
         setTimeout(() => {
             if (errorElement.parentNode) {
                 errorElement.parentNode.removeChild(errorElement);
             }
         }, 5000);
     }
-    
-    // Initialize the application
-    loadClassesData();
-    
-    // Save selection state to localStorage
-    classSelector.addEventListener('change', function() {
-        localStorage.setItem('selectedClass', this.value);
-    });
 });
