@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiploIA - Clases Interactivas</title>
+    <style>
+        :root {
+            --primary-color: #4285F4;
+            --secondary-color: #34A853;
+            --accent-color: #EA4335;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --light-gray: #e0e0e0;
+            --white: #ffffff;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .select-container {
+            position: relative;
+            min-width: 300px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--white);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234285F4" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 24px;
+        }
+
+        select:hover {
+            border-color: var(--primary-color);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+        }
+
+        .filter-container {
+            position: relative;
+        }
+
+        .filter-input {
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 16px;
+            width: 250px;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 168, 83, 0.2);
+        }
+
+        .content-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 25px;
+        }
+
+        .video-container {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all var(--transition-speed) ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .video-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            background-color: #000;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .video-info {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .video-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .video-id {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: var(--accent-color);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        .documents-container {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all var(--transition-speed) ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .documents-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .documents-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .documents-title {
+            font-size: 1.3rem;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .document-list {
+            list-style: none;
+        }
+
+        .document-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            transition: all var(--transition-speed) ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .document-item:hover {
+            background-color: #d0d0d0;
+            transform: translateX(5px);
+        }
+
+        .document-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .document-name {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .document-size {
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid var(--light-gray);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .no-video {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--accent-color);
+            background-color: #ffebee;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .no-video-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .no-documents {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .content-area {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .select-container, .filter-input {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        /* File type icons */
+        .pdf-icon { background-color: #FF5733; }
+        .md-icon { background-color: #4285F4; }
+        .yaml-icon { background-color: #666; }
+        .unknown-icon { background-color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DiploIA - Clases Interactivas</h1>
+            <p class="subtitle">Selecciona una clase para ver el video y los documentos asociados</p>
+        </header>
+
+        <div class="controls">
+            <div class="select-container">
+                <select id="class-selector">
+                    <option value="">Selecciona una clase...</option>
+                </select>
+            </div>
+
+            <div class="filter-container">
+                <input type="text" id="filter-input" class="filter-input" placeholder="Filtrar por nombre...">
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Cargando datos...</p>
+        </div>
+
+        <div class="error-message" id="error-message">
+            Error al cargar los datos. Por favor, verifica tu conexión o intenta más tarde.
+        </div>
+
+        <div class="content-area">
+            <div class="video-container" id="video-container">
+                <h3 class="video-title">Video de la clase</h3>
+                <div class="video-wrapper" id="video-wrapper">
+                    <!-- YouTube player will be embedded here -->
+                </div>
+                <div class="video-info">
+                    <div class="video-title" id="current-class-name">Selecciona una clase</div>
+                    <div class="video-id" id="current-youtube-id">ID de YouTube: Ninguno</div>
+                </div>
+            </div>
+
+            <div class="documents-container" id="documents-container">
+                <div class="documents-header">
+                    <h3 class="documents-title">Documentos asociados</h3>
+                    <span id="document-count">0 documentos</span>
+                </div>
+                <ul class="document-list" id="document-list">
+                    <li class="no-documents">Selecciona una clase para ver los documentos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let classesData = [];
+        let currentClass = null;
+        let youtubePlayer = null;
+
+        // DOM elements
+        const classSelector = document.getElementById('class-selector');
+        const filterInput = document.getElementById('filter-input');
+        const loadingElement = document.getElementById('loading');
+        const errorMessage = document.getElementById('error-message');
+        const videoContainer = document.getElementById('video-container');
+        const videoWrapper = document.getElementById('video-wrapper');
+        const documentsContainer = document.getElementById('documents-container');
+        const documentList = document.getElementById('document-list');
+        const documentCount = document.getElementById('document-count');
+        const currentClassName = document.getElementById('current-class-name');
+        const currentYoutubeId = document.getElementById('current-youtube-id');
+
+        // Initialize the page
+        async function init() {
+            showLoading();
+            hideError();
+            
+            try {
+                // Load classes data
+                classesData = await loadClassesData();
+                
+                if (classesData && classesData.length > 0) {
+                    populateClassSelector(classesData);
+                    setupEventListeners();
+                    
+                    // Check for saved selection in localStorage
+                    const savedClass = localStorage.getItem('selectedClass');
+                    if (savedClass) {
+                        const savedClassData = classesData.find(c => c.nombre === savedClass);
+                        if (savedClassData) {
+                            updateUI(savedClassData);
+                        }
+                    }
+                } else {
+                    showError('No se encontraron datos de clases');
+                }
+            } catch (error) {
+                console.error('Error initializing:', error);
+                showError('Error al cargar los datos. Por favor, verifica tu conexión.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Load classes data from JSON
+        async function loadClassesData() {
+            try {
+                const response = await fetch('rm-DiploIA_v5/clases.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.clases || [];
+            } catch (error) {
+                console.error('Error loading classes data:', error);
+                throw error;
+            }
+        }
+
+        // Populate the class selector dropdown
+        function populateClassSelector(classes) {
+            classSelector.innerHTML = '<option value="">Selecciona una clase...</option>';
+            
+            classes.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.nombre;
+                option.textContent = cls.nombre.replace('C', 'Clase ').replace('_', ': ');
+                classSelector.appendChild(option);
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            classSelector.addEventListener('change', (e) => {
+                const selectedClassName = e.target.value;
+                if (selectedClassName) {
+                    const selectedClass = classesData.find(c => c.nombre === selectedClassName);
+                    if (selectedClass) {
+                        updateUI(selectedClass);
+                        // Save selection to localStorage
+                        localStorage.setItem('selectedClass', selectedClassName);
+                    }
+                } else {
+                    resetUI();
+                }
+            });
+
+            filterInput.addEventListener('input', (e) => {
+                const filterText = e.target.value.toLowerCase();
+                filterClasses(filterText);
+            });
+        }
+
+        // Filter classes based on input
+        function filterClasses(filterText) {
+            const filteredClasses = classesData.filter(cls => 
+                cls.nombre.toLowerCase().includes(filterText)
+            );
+            
+            populateClassSelector(filteredClasses);
+            
+            // If current selection is not in filtered list, reset UI
+            if (currentClass && !filteredClasses.some(c => c.nombre === currentClass.nombre)) {
+                resetUI();
+            }
+        }
+
+        // Update UI with selected class data
+        function updateUI(cls) {
+            currentClass = cls;
+            
+            // Update class name and YouTube ID
+            currentClassName.textContent = cls.nombre.replace('C', 'Clase ').replace('_', ': ');
+            currentYoutubeId.textContent = cls.youtube_id ? `ID de YouTube: ${cls.youtube_id}` : 'No hay video disponible';
+            
+            // Show video container
+            videoContainer.classList.add('visible');
+            
+            // Load YouTube video if available
+            if (cls.youtube_id) {
+                loadYouTubeVideo(cls.youtube_id);
+            } else {
+                showNoVideoMessage();
+            }
+            
+            // Update documents
+            updateDocumentsUI(cls.docus || []);
+            
+            // Show documents container
+            documentsContainer.classList.add('visible');
+        }
+
+        // Reset UI to initial state
+        function resetUI() {
+            currentClass = null;
+            currentClassName.textContent = 'Selecciona una clase';
+            currentYoutubeId.textContent = 'ID de YouTube: Ninguno';
+            
+            // Clear YouTube player
+            if (youtubePlayer) {
+                youtubePlayer.destroy();
+                youtubePlayer = null;
+            }
+            videoWrapper.innerHTML = '';
+            
+            // Reset document list
+            documentList.innerHTML = '<li class="no-documents">Selecciona una clase para ver los documentos</li>';
+            documentCount.textContent = '0 documentos';
+            
+            // Hide containers with animation
+            videoContainer.classList.remove('visible');
+            documentsContainer.classList.remove('visible');
+        }
+
+        // Load YouTube video
+        function loadYouTubeVideo(videoId) {
+            // Clear any existing player
+            if (youtubePlayer) {
+                youtubePlayer.destroy();
+            }
+            
+            videoWrapper.innerHTML = '';
+            
+            // Create new iframe
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            iframe.className = 'youtube-iframe';
+            
+            // Use lazy loading
+            iframe.loading = 'lazy';
+            
+            videoWrapper.appendChild(iframe);
+            
+            // Initialize YouTube player API
+            if (window.YT && window.YT.Player) {
+                youtubePlayer = new YT.Player(iframe, {
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onError': onPlayerError
+                    }
+                });
+            } else {
+                // Load YouTube API if not already loaded
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                
+                window.onYouTubeIframeAPIReady = function() {
+                    youtubePlayer = new YT.Player(iframe, {
+                        events: {
+                            'onReady': onPlayerReady,
+                            'onError': onPlayerError
+                        }
+                    });
+                };
+            }
+        }
+
+        // YouTube player ready event
+        function onPlayerReady(event) {
+            console.log('YouTube player ready');
+            // You could add autoplay here if desired: event.target.playVideo();
+        }
+
+        // YouTube player error event
+        function onPlayerError(event) {
+            console.error('YouTube player error:', event.data);
+            showNoVideoMessage();
+        }
+
+        // Show message when no video is available
+        function showNoVideoMessage() {
+            videoWrapper.innerHTML = `
+                <div class="no-video">
+                    <div class="no-video-icon">🚫</div>
+                    <p>No hay video disponible para esta clase</p>
+                </div>
+            `;
+        }
+
+        // Update documents UI
+        function updateDocumentsUI(documents) {
+            if (documents.length === 0) {
+                documentList.innerHTML = '<li class="no-documents">No hay documentos disponibles para esta clase</li>';
+                documentCount.textContent = '0 documentos';
+                return;
+            }
+            
+            documentList.innerHTML = '';
+            documentCount.textContent = `${documents.length} documento${documents.length > 1 ? 's' : ''}`;
+            
+            documents.forEach(doc => {
+                const listItem = document.createElement('li');
+                listItem.className = 'document-item';
+                
+                // Determine file type and icon
+                const fileExt = doc.split('.').pop().toLowerCase();
+                const iconClass = getFileIconClass(fileExt);
+                
+                listItem.innerHTML = `
+                    <div style="display: flex; align-items: center; flex-grow: 1;">
+                        <div class="document-icon ${iconClass}"></div>
+                        <span class="document-name" title="${doc}">${doc}</span>
+                    </div>
+                    <button class="download-btn" data-doc="${doc}" style="
+                        background: var(--primary-color);
+                        color: white;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 0.8rem;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='#3367D6'" onmouseout="this.style.background='var(--primary-color)'">
+                        Descargar
+                    </button>
+                `;
+                
+                // Add click event to download the document
+                const downloadBtn = listItem.querySelector('.download-btn');
+                downloadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    downloadDocument(doc);
+                });
+                
+                // Add hover effect to show full document path
+                listItem.addEventListener('mouseenter', () => {
+                    const docName = listItem.querySelector('.document-name');
+                    docName.title = `Clases_DiploIA/${currentClass.nombre}/${doc}`;
+                });
+                
+                documentList.appendChild(listItem);
+            });
+        }
+
+        // Get file icon class based on extension
+        function getFileIconClass(extension) {
+            switch (extension) {
+                case 'pdf': return 'pdf-icon';
+                case 'md': return 'md-icon';
+                case 'yaml':
+                case 'yml': return 'yaml-icon';
+                default: return 'unknown-icon';
+            }
+        }
+
+        // Download document
+        function downloadDocument(docName) {
+            if (!currentClass) return;
+            
+            const documentPath = `Clases_DiploIA/${currentClass.nombre}/${docName}`;
+            
+            // Create a temporary link to download the file
+            const link = document.createElement('a');
+            link.href = documentPath;
+            link.download = docName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Show loading state
+        function showLoading() {
+            loadingElement.classList.add('visible');
+        }
+
+        // Hide loading state
+        function hideLoading() {
+            loadingElement.classList.remove('visible');
+        }
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('visible');
+        }
+
+        // Hide error message
+        function hideError() {
+            errorMessage.classList.remove('visible');
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

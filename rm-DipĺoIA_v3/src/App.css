@@ -29,6 +29,26 @@
   min-height: 100vh;
 }
 
+.video-url-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  padding: 30px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+
+.video-url-input-container input:focus {
+  outline: none;
+  border-color: #666;
+  box-shadow: 0 0 0 3px rgba(102, 102, 102, 0.3);
+}
+
 .video-with-scrubber {
   position: relative;
   display: flex;

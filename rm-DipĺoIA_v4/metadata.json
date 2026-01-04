@@ -1,0 +1,7 @@
+{
+  "name": "DiploIA Video Studio",
+  "description": "A high-performance YouTube annotation and learning platform that uses AI to segment and analyze video content.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

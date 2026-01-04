@@ -128,12 +128,22 @@ function App() {
   return (
     <div className="app">
       <div className="ultra-minimal-section">
-        {videoId && (
+        {videoId ? (
           <div className="video-with-scrubber">
             <div className="youtube-player-container">
-              <YouTube videoId={videoId} opts={opts} onReady={onReady} onStateChange={onStateChange} className="youtube-player" />
+              <YouTube
+                videoId={videoId}
+                opts={opts}
+                onReady={onReady}
+                onStateChange={onStateChange}
+                onError={(e) => {
+                  console.error('YouTube player error:', e);
+                  alert('Error loading YouTube video. Check console for details.');
+                }}
+                className="youtube-player"
+              />
             </div>
-            
+             
             <div className="floating-enhanced-scrubber">
               <RmVerticalScrubber
                 annotations={annotations}
@@ -147,6 +157,29 @@ function App() {
                 onUrlChange={handleUrlChange}
               />
             </div>
+          </div>
+        ) : (
+          <div className="video-url-input-container">
+            <h2 style={{color: 'white', marginBottom: '20px'}}>Enter YouTube Video URL</h2>
+            <input
+              type="text"
+              value={videoUrl}
+              onChange={handleUrlChange}
+              placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+              style={{
+                padding: '12px 20px',
+                fontSize: '16px',
+                width: '500px',
+                maxWidth: '80%',
+                borderRadius: '8px',
+                border: '2px solid #444',
+                background: '#222',
+                color: 'white'
+              }}
+            />
+            <p style={{color: '#ccc', marginTop: '15px', fontSize: '14px'}}>
+              Paste a YouTube video URL to start annotating
+            </p>
           </div>
         )}
       </div>

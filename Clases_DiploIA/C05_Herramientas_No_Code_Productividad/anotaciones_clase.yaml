@@ -1,0 +1,17 @@
+course: "DiploIA"
+class_number: 5
+date: "2025-10-30"
+topic: "Herramientas No Code para la productividad"
+notes:
+  - "Introducción a herramientas No Code: plataformas que permiten crear aplicaciones sin necesidad de programar."
+  - "Ejemplos principales: Make, n8n, Zapier, Power Apps."
+  - "Beneficios en productividad: reducción de tiempo en tareas repetitivas, prototipado rápido, accesibilidad para no desarrolladores."
+  - "Desafíos: limitaciones en personalización avanzada, dependencias de proveedores, curva de aprendizaje inicial."
+  - "Casos de uso: automatización de flujos de trabajo, gestión de proyectos, creación de dashboards."
+  - "Demo práctica: Realizar la conexión entre Make y Google siguiendo el tutorial en el aula virtual."
+resources:
+  - "https://zapier.com/"
+  - "https://airtable.com/"
+  - "https://bubble.io/"
+  - "Documentación oficial de cada herramienta"
+additional_notes: "Revisar ejemplos prácticos en la clase y experimentar con una herramienta gratuita."
