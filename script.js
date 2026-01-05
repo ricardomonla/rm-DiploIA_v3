@@ -2,9 +2,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        allowedExtensions: ['.pdf', '.md', '.yaml', '.yml'],
-        youtubeBaseUrl: 'https://www.youtube.com/embed/',
-        campusUrl: '',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -35,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadDocusConfig();
             await loadClassesData();
             populateDropdown();
-            autoSelectClass();
+            await autoSelectClass();
             setupEventListeners();
         } catch (error) {
             console.error('Initialization error:', error);
@@ -55,17 +52,19 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(CONFIG.apiEndpoints.docusConfig);
             const config = await response.json();
-            
+
             state.docusDir = config.docus_dir;
-            CONFIG.allowedExtensions = config.allowed_extensions || ['.pdf', '.md', '.yaml', '.yml'];
+            CONFIG.allowedExtensions = config.allowed_extensions;
             CONFIG.campusUrl = config.campus_url || '';
-            
+            CONFIG.youtubeBaseUrl = config.youtube_base_url || 'https://www.youtube.com/embed/';
+
             console.log('Docus config loaded:', {
                 docusDir: state.docusDir,
                 allowedExtensions: CONFIG.allowedExtensions,
-                campusUrl: CONFIG.campusUrl
+                campusUrl: CONFIG.campusUrl,
+                youtubeBaseUrl: CONFIG.youtubeBaseUrl
             });
-            
+
         } catch (error) {
             console.error('Error loading docus config:', error);
         }
@@ -75,15 +74,16 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadClassesData() {
         try {
             console.log('Loading classes data from subdirectories...');
-            
+
             const subdirectories = await fetchSubdirectories();
-            
+            console.log('Fetched subdirectories:', subdirectories);
+
             state.classesData.clases = await Promise.all(
                 subdirectories.map(dirName => loadClassData(dirName))
             );
-            
+
             console.log('Classes data loaded:', state.classesData);
-            
+
         } catch (error) {
             console.error('Error loading classes data:', error);
             throw error;
@@ -91,36 +91,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function fetchSubdirectories() {
+        console.log('Fetching subdirectories from:', state.docusDir);
         const response = await fetch(state.docusDir);
         if (!response.ok) throw new Error('Failed to load classes directory');
-        
+
         const html = await response.text();
+        console.log('Directory HTML response:', html.substring(0, 500)); // Log first 500 chars
         const regex = /href="([^"]+)"/g;
         const subdirectories = [];
         let match;
-        
+
         while ((match = regex.exec(html)) !== null) {
             const href = match[1];
+            console.log('Found href:', href);
             if (href && href.endsWith('/') && !href.includes('..')) {
                 const dirName = decodeURIComponent(href.replace('/', ''));
+                console.log('Potential dirName:', dirName);
                 if (dirName.startsWith('C') && dirName.includes('_')) {
                     subdirectories.push(dirName);
                 }
             }
         }
-        
+
+        console.log('Filtered subdirectories:', subdirectories);
         return subdirectories;
     }
 
     async function loadClassData(dirName) {
         try {
+            console.log(`Loading data for ${dirName}`);
             const [dataResponse, docsResponse] = await Promise.all([
-                fetch(`${state.docusDir}${dirName}/data.json`),
+                fetch(`${state.docusDir}${dirName}/data.json?t=${Date.now()}`),
                 fetch(`${state.docusDir}${dirName}/`)
             ]);
 
+            console.log(`Data response for ${dirName}:`, dataResponse.ok, dataResponse.status);
             const data = dataResponse.ok ? await dataResponse.json() : {};
+            console.log(`Parsed data for ${dirName}:`, data);
+
+            console.log(`Docs response for ${dirName}:`, docsResponse.ok, docsResponse.status);
             const docs = docsResponse.ok ? await extractDocuments(docsResponse) : [];
+            console.log(`Extracted docs for ${dirName}:`, docs);
 
             return {
                 nombre: dirName,
@@ -145,22 +156,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    async function reloadClassData(dirName) {
+        const updatedClass = await loadClassData(dirName);
+        const index = state.classesData.clases.findIndex(clase => clase.nombre === dirName);
+        if (index !== -1) {
+            state.classesData.clases[index] = updatedClass;
+        }
+        return updatedClass;
+    }
+
     async function extractDocuments(response) {
         const html = await response.text();
+        console.log('Documents HTML:', html.substring(0, 500)); // Log first 500 chars
         const regex = /href="([^"]+)"/g;
         const documents = [];
         let match;
 
         while ((match = regex.exec(html)) !== null) {
             const docHref = match[1];
+            console.log('Found doc href:', docHref);
             if (docHref && !docHref.includes('..') && !docHref.endsWith('/')) {
                 const isAllowed = CONFIG.allowedExtensions.some(ext => docHref.endsWith(ext));
+                console.log(`Doc ${docHref} allowed:`, isAllowed);
                 if (isAllowed) {
                     documents.push(decodeURIComponent(docHref));
                 }
             }
         }
 
+        console.log('Final documents list:', documents);
         return documents;
     }
 
@@ -197,18 +221,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function autoSelectClass() {
+    async function autoSelectClass() {
         const savedClass = localStorage.getItem('selectedClass');
         if (savedClass) {
             elements.classSelector.value = savedClass;
-            handleClassSelection();
+            await handleClassSelection();
         } else if (state.classesData.clases?.[0]) {
             elements.classSelector.value = state.classesData.clases[0].nombre;
-            handleClassSelection();
+            await handleClassSelection();
         }
     }
 
-    function handleClassSelection() {
+    async function handleClassSelection() {
         const selectedClassName = elements.classSelector.value;
         if (!selectedClassName) {
             clearPlayer();
@@ -216,8 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateClassTitle('Seleccionar una clase');
             return;
         }
-        
-        const selectedClass = state.classesData.clases.find(clase => clase.nombre === selectedClassName);
+
+        // Reload the class data to get fresh data.json
+        const selectedClass = await reloadClassData(selectedClassName);
         if (selectedClass) {
             updateClassTitle(formatClassName(selectedClass));
             loadYouTubeVideo(selectedClass);
@@ -228,12 +253,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // === PLAYER MANAGEMENT ===
     function loadYouTubeVideo(clase) {
         clearPlayer();
-        
-        if (!clase.youtube_id) {
-            showError('No YouTube video available for this class');
+
+        if (!clase.youtube_id || !clase.youtube_id.trim()) {
+            // No video available, just leave the player area empty
             return;
         }
-        
+
         const iframe = createYouTubeIframe(clase.youtube_id);
         elements.youtubePlayer.appendChild(iframe);
         state.currentPlayer = iframe;
@@ -407,13 +432,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function previewDocument(className, docName) {
         clearPlayer();
-        
+
         const docPath = `${state.docusDir}${className}/${docName}`;
-        
+
         if (docName.endsWith('.pdf')) {
             loadPDFDocument(docPath);
         } else if (docName.endsWith('.md')) {
             loadMarkdownDocument(docPath, className, docName);
+        } else if (docName.endsWith('.mp4')) {
+            loadVideoDocument(docPath);
         } else if (docName.endsWith('.yaml') || docName.endsWith('.yml')) {
             loadYAMLDocument(docPath);
         } else {
@@ -428,14 +455,36 @@ document.addEventListener('DOMContentLoaded', function() {
         container.style.backgroundColor = '#f8f9fa';
         container.style.borderRadius = '8px';
         container.style.overflow = 'hidden';
-        
+
         const embed = document.createElement('embed');
         embed.src = docPath;
         embed.type = 'application/pdf';
         embed.width = '100%';
         embed.height = '100%';
-        
+
         container.appendChild(embed);
+        elements.youtubePlayer.appendChild(container);
+        state.currentPlayer = container;
+    }
+
+    function loadVideoDocument(docPath) {
+        const container = document.createElement('div');
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.backgroundColor = '#f8f9fa';
+        container.style.borderRadius = '8px';
+        container.style.overflow = 'hidden';
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'center';
+
+        const video = document.createElement('video');
+        video.src = docPath;
+        video.controls = true;
+        video.style.maxWidth = '100%';
+        video.style.maxHeight = '100%';
+
+        container.appendChild(video);
         elements.youtubePlayer.appendChild(container);
         state.currentPlayer = container;
     }
@@ -526,7 +575,10 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.style.borderRadius = '5px';
         preview.style.overflow = 'auto';
         preview.style.textAlign = 'left';
-        preview.innerHTML = convertMarkdownToHTML(markdownContent);
+        preview.innerHTML = marked.parse(markdownContent);
+        // Make all links open in new tab
+        const links = preview.querySelectorAll('a');
+        links.forEach(link => link.setAttribute('target', '_blank'));
         return preview;
     }
 
@@ -543,7 +595,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initial preview
         const preview = editorPreviewContainer.querySelector('.markdown-preview');
-        preview.innerHTML = convertMarkdownToHTML(markdownContent);
+        preview.innerHTML = marked.parse(markdownContent);
+        // Make all links open in new tab
+        const links = preview.querySelectorAll('a');
+        links.forEach(link => link.setAttribute('target', '_blank'));
         
         editorContainer.appendChild(toolbar);
         editorContainer.appendChild(editorPreviewContainer);
@@ -607,7 +662,10 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.style.textAlign = 'left';
         
         editor.addEventListener('input', () => {
-            preview.innerHTML = convertMarkdownToHTML(editor.value);
+            preview.innerHTML = marked.parse(editor.value);
+            // Make all links open in new tab
+            const links = preview.querySelectorAll('a');
+            links.forEach(link => link.setAttribute('target', '_blank'));
         });
         
         container.appendChild(editor);
@@ -677,6 +735,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const icons = {
             '.pdf': '📄',
             '.md': '📝',
+            '.mp4': '🎥',
             '.yaml': '⚙️',
             '.yml': '⚙️'
         };
@@ -688,23 +747,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return filename.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
     }
 
-    function convertMarkdownToHTML(markdown) {
-        return markdown
-            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-            .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\\[(.*?)\\]\\((.*?)\\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/^\* (.*$)/gm, '<li>$1</li>')
-            .replace(/^\- (.*$)/gm, '<li>$1</li>')
-            .replace(/^(?!<[a-z])\S.*$/gm, '<p>$&</p>')
-            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/^---$/gm, '<hr>')
-            .replace(/\n\n\n+/g, '\n\n');
-    }
 
     function clearDocuments() {
         elements.documentsList.innerHTML = '';
