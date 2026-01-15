@@ -54,12 +54,12 @@ header h1 {
     max-width: 500px;
     transition: border-color var(--transition-speed) ease;
     height: auto;
-    min-height: 50px;
+    min-height: 60px;
     line-height: 1.4;
     text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
 }
 
 .dropdown:focus {
@@ -83,7 +83,7 @@ header h1 {
 .sidebar .dropdown {
     width: 100%;
     max-width: none;
-    min-height: 55px;
+    min-height: 65px;
 }
 
 /* Estilo para el texto largo en 2 líneas */
@@ -104,7 +104,7 @@ header h1 {
     word-wrap: break-word;
     word-break: break-word;
     height: auto;
-    min-height: 50px;
+    min-height: 60px;
     padding: 12px 10px;
 }
 
@@ -319,11 +319,37 @@ main {
 .sidebar .selector-container {
     margin-bottom: 20px;
     text-align: left;
+    margin-top: 0; /* Asegurar que esté alineado en la parte superior */
 }
 
 .sidebar .dropdown {
     width: 100%;
     max-width: none;
+}
+
+/* Alinear selector y contenedor de selectores a la misma altura superior */
+.container {
+    align-items: flex-start; /* Alinear ambos contenedores en la parte superior */
+}
+
+.sidebar {
+    margin-top: 0; /* Asegurar que el sidebar comience desde la parte superior */
+}
+
+main {
+    margin-top: 0; /* Asegurar que el main comience desde la parte superior */
+}
+
+/* Asegurar que el selector esté alineado con el contenedor de selectores */
+.sidebar .selector-container {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+/* Asegurar que el contenedor de selectores en main esté alineado */
+main .selector-container {
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
 /* Markdown viewer styling */

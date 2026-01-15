@@ -7,12 +7,94 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // === PROGRESS TRACKING SYSTEM ===
+    class ProgressTracker {
+        constructor() {
+            this.storageKey = 'diploia_progress_v1';
+            this.progressData = this.loadProgressData();
+        }
+
+        loadProgressData() {
+            try {
+                const saved = localStorage.getItem(this.storageKey);
+                return saved ? JSON.parse(saved) : {
+                    classes: {},
+                    lastActivity: null
+                };
+            } catch (error) {
+                console.warn('Error loading progress data:', error);
+                return { classes: {}, lastActivity: null };
+            }
+        }
+
+        saveProgressData() {
+            try {
+                localStorage.setItem(this.storageKey, JSON.stringify(this.progressData));
+            } catch (error) {
+                console.warn('Error saving progress data:', error);
+            }
+        }
+
+        getClassProgress(classId) {
+            return this.progressData.classes[classId] || {
+                lastViewed: null,
+                videoProgress: 0,
+                currentResource: null,
+                resources: {}
+            };
+        }
+
+        updateClassProgress(classId, updates) {
+            if (!this.progressData.classes[classId]) {
+                this.progressData.classes[classId] = {
+                    lastViewed: null,
+                    videoProgress: 0,
+                    currentResource: null,
+                    resources: {}
+                };
+            }
+            
+            Object.assign(this.progressData.classes[classId], updates);
+            this.progressData.lastActivity = new Date().toISOString();
+            this.saveProgressData();
+        }
+
+        updateResourceProgress(classId, resourceType, resourceId, progress) {
+            const classProgress = this.getClassProgress(classId);
+            if (!classProgress.resources[resourceType]) {
+                classProgress.resources[resourceType] = {};
+            }
+            
+            classProgress.resources[resourceType][resourceId] = {
+                ...classProgress.resources[resourceType][resourceId],
+                ...progress,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            this.updateClassProgress(classId, { resources: classProgress.resources });
+        }
+
+        getCurrentClassProgress(classId) {
+            return this.getClassProgress(classId);
+        }
+
+        restoreClassProgress(classId) {
+            return this.getClassProgress(classId);
+        }
+
+        clearProgress(classId) {
+            delete this.progressData.classes[classId];
+            this.saveProgressData();
+        }
+    }
+
     // === STATE MANAGEMENT ===
     const state = {
         classesData: { clases: [] },
         currentPlayer: null,
         selectedClass: null,
-        docusDir: '' // Will be loaded from docus.json
+        docusDir: '', // Will be loaded from docus.json
+        progressTracker: new ProgressTracker() // Initialize progress tracking
     };
 
     // === DOM ELEMENTS ===
@@ -45,6 +127,12 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.classSelector.addEventListener('change', (e) => {
             localStorage.setItem('selectedClass', e.target.value);
         });
+        
+        // Add window unload event to save progress
+        window.addEventListener('beforeunload', saveCurrentProgress);
+        
+        // Add visibility change event to handle tab switching
+        document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
     // === CONFIGURATION LOADING ===
@@ -241,12 +329,24 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Save progress for previous class before switching
+        if (state.selectedClass && state.selectedClass !== selectedClassName) {
+            saveCurrentProgress();
+        }
+
+        state.selectedClass = selectedClassName;
+        
         // Reload the class data to get fresh data.json
         const selectedClass = await reloadClassData(selectedClassName);
         if (selectedClass) {
             updateClassTitle(formatClassName(selectedClass));
             loadYouTubeVideo(selectedClass);
             displayDocuments(selectedClass);
+            
+            // Restore progress for this class
+            setTimeout(() => {
+                restoreProgressForCurrentClass();
+            }, 500);
         }
     }
 
@@ -262,7 +362,199 @@ document.addEventListener('DOMContentLoaded', function() {
         const iframe = createYouTubeIframe(clase.youtube_id);
         elements.youtubePlayer.appendChild(iframe);
         state.currentPlayer = iframe;
+        
+        // Initialize YouTube API for progress tracking
+        // initializeYouTubeAPI(clase.youtube_id);
     }
+
+    // YouTube API functions (commented out to prevent breaking the app)
+    // function initializeYouTubeAPI(videoId) {
+    //     // Check if YouTube API is already loaded
+    //     if (window.YT && window.YT.Player) {
+    //         createYouTubePlayer(videoId);
+    //     } else {
+    //         // Load YouTube API if not already loaded
+    //         loadYouTubeAPI(videoId);
+    //     }
+    // }
+
+    // function loadYouTubeAPI(videoId) {
+    //     const tag = document.createElement('script');
+    //     tag.src = 'https://www.youtube.com/iframe_api';
+    //     const firstScriptTag = document.getElementsByTagName('script')[0];
+    //     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        
+    //     // Set up callback for when API is ready
+    //     window.onYouTubeIframeAPIReady = () => {
+    //         createYouTubePlayer(videoId);
+    //     };
+    // }
+
+    // function createYouTubePlayer(videoId) {
+    //     if (window.YT && window.YT.Player) {
+    //         const player = new window.YT.Player('youtube-player iframe', {
+    //             events: {
+    //                 'onStateChange': onPlayerStateChange,
+    //                 'onPlaybackProgress': onPlayerProgress
+    //             }
+    //         });
+            
+    //         // Store player reference
+    //         state.youtubePlayer = player;
+            
+    //         // Restore video progress if available
+    //         restoreVideoProgress(videoId);
+    //     }
+    // }
+
+    // function onPlayerStateChange(event) {
+    //     const videoId = getCurrentVideoId();
+    //     if (!videoId) return;
+
+    //     switch (event.data) {
+    //         case window.YT.PlayerState.PLAYING:
+    //             // Start tracking progress
+    //             startProgressTracking(videoId);
+    //             break;
+    //         case window.YT.PlayerState.PAUSED:
+    //         case window.YT.PlayerState.ENDED:
+    //             // Save progress immediately when paused or ended
+    //             saveVideoProgress(videoId);
+    //             break;
+    //     }
+    // }
+
+    // function onPlayerProgress() {
+    //     const videoId = getCurrentVideoId();
+    //     if (videoId) {
+    //         saveVideoProgress(videoId);
+    //     }
+    // }
+
+    // function startProgressTracking(videoId) {
+    //     if (state.progressInterval) {
+    //         clearInterval(state.progressInterval);
+    //     }
+        
+    //     state.progressInterval = setInterval(() => {
+    //         saveVideoProgress(videoId);
+    //     }, 5000); // Save progress every 5 seconds
+    // }
+
+    // function saveVideoProgress(videoId) {
+    //     if (!state.youtubePlayer || !state.selectedClass) return;
+
+    //     const currentTime = state.youtubePlayer.getCurrentTime();
+    //     const duration = state.youtubePlayer.getDuration();
+    //     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+    //     // Update progress tracker
+    //     state.progressTracker.updateResourceProgress(
+    //         state.selectedClass,
+    //         'video',
+    //         videoId,
+    //         {
+    //             currentTime: currentTime,
+    //             duration: duration,
+    //             progress: progress
+    //         }
+    //     );
+
+    //     // Update progress bar if exists
+    //     updateVideoProgressBar(progress);
+    // }
+
+    // function restoreVideoProgress(videoId) {
+    //     if (!state.selectedClass) return;
+
+    //     const classProgress = state.progressTracker.getClassProgress(state.selectedClass);
+    //     const videoProgress = classProgress.resources.video?.[videoId];
+
+    //     if (videoProgress && videoProgress.currentTime > 0) {
+    //         // Wait for player to be ready
+    //         setTimeout(() => {
+    //             if (state.youtubePlayer) {
+    //                 state.youtubePlayer.seekTo(videoProgress.currentTime);
+    //                 showRestoreNotification(`Video restaurado en ${formatTime(videoProgress.currentTime)}`);
+    //             }
+    //         }, 1000);
+    //     }
+    // }
+
+    // function getCurrentVideoId() {
+    //     if (state.currentPlayer && state.currentPlayer.querySelector) {
+    //         const iframe = state.currentPlayer.querySelector('iframe[src*="youtube"]');
+    //         if (iframe) {
+    //             return extractYouTubeId(iframe.src);
+    //         }
+    //     }
+    //     return null;
+    // }
+
+    // function updateVideoProgressBar(progress) {
+    //     // Create or update progress bar
+    //     let progressBar = document.getElementById('video-progress-bar');
+    //     if (!progressBar) {
+    //         progressBar = document.createElement('div');
+    //         progressBar.id = 'video-progress-bar';
+    //         progressBar.style.position = 'absolute';
+    //         progressBar.style.bottom = '10px';
+    //         progressBar.style.left = '10px';
+    //         progressBar.style.right = '10px';
+    //         progressBar.style.height = '4px';
+    //         progressBar.style.backgroundColor = '#ddd';
+    //         progressBar.style.borderRadius = '2px';
+    //         progressBar.style.zIndex = '1000';
+            
+    //         const progressFill = document.createElement('div');
+    //         progressFill.style.height = '100%';
+    //         progressFill.style.backgroundColor = '#007bff';
+    //         progressFill.style.width = '0%';
+    //         progressFill.style.transition = 'width 0.3s ease';
+    //         progressFill.id = 'video-progress-fill';
+            
+    //         progressBar.appendChild(progressFill);
+    //         elements.youtubePlayer.appendChild(progressBar);
+    //     }
+        
+    //     const progressFill = document.getElementById('video-progress-fill');
+    //     if (progressFill) {
+    //         progressFill.style.width = `${progress}%`;
+    //     }
+    // }
+
+    // function showRestoreNotification(message) {
+    //     let notification = document.getElementById('restore-notification');
+    //     if (!notification) {
+    //         notification = document.createElement('div');
+    //         notification.id = 'restore-notification';
+    //         notification.style.position = 'absolute';
+    //         notification.style.top = '10px';
+    //         notification.style.right = '10px';
+    //         notification.style.backgroundColor = '#28a745';
+    //         notification.style.color = 'white';
+    //         notification.style.padding = '8px 16px';
+    //         notification.style.borderRadius = '4px';
+    //         notification.style.zIndex = '1000';
+    //         notification.style.opacity = '0';
+    //         notification.style.transition = 'opacity 0.3s ease';
+            
+    //         elements.youtubePlayer.appendChild(notification);
+    //     }
+        
+    //     notification.textContent = message;
+    //     notification.style.opacity = '1';
+        
+    //     setTimeout(() => {
+    //         notification.style.opacity = '0';
+    //     }, 3000);
+    // }
+
+    // function formatTime(seconds) {
+    //     const mins = Math.floor(seconds / 60);
+    //     const secs = Math.floor(seconds % 60);
+    //     return `${mins}:${secs.toString().padStart(2, '0')}`;
+    // }
 
     function createYouTubeIframe(videoId) {
         const iframe = document.createElement('iframe');
@@ -446,6 +738,19 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             showError('Document type not supported for preview');
         }
+        
+        // Track document access
+        if (state.selectedClass) {
+            state.progressTracker.updateResourceProgress(
+                state.selectedClass,
+                'document',
+                docName,
+                {
+                    lastAccessed: new Date().toISOString(),
+                    type: docName.split('.').pop()
+                }
+            );
+        }
     }
 
     function loadPDFDocument(docPath) {
@@ -496,8 +801,27 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const markdown = await response.text();
             createMarkdownViewerWithEdit(className, docName, markdown);
+            
+            // Restore markdown scroll position if available
+            restoreMarkdownScrollPosition(className, docName);
         } catch (error) {
             showError('Error loading document: ' + error.message);
+        }
+    }
+
+    function restoreMarkdownScrollPosition(className, docName) {
+        if (!state.selectedClass) return;
+
+        const classProgress = state.progressTracker.getClassProgress(state.selectedClass);
+        const docProgress = classProgress.resources.document?.[docName];
+
+        if (docProgress && docProgress.scrollPosition !== undefined) {
+            setTimeout(() => {
+                const viewer = document.querySelector('.markdown-viewer');
+                if (viewer) {
+                    viewer.scrollTop = docProgress.scrollPosition;
+                }
+            }, 100);
         }
     }
 
@@ -599,6 +923,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Make all links open in new tab
         const links = preview.querySelectorAll('a');
         links.forEach(link => link.setAttribute('target', '_blank'));
+        
+        // Add scroll tracking for markdown editor
+        editor.addEventListener('scroll', () => {
+            if (state.selectedClass) {
+                state.progressTracker.updateResourceProgress(
+                    state.selectedClass,
+                    'document',
+                    docName,
+                    {
+                        scrollPosition: editor.scrollTop,
+                        lastUpdated: new Date().toISOString()
+                    }
+                );
+            }
+        });
         
         editorContainer.appendChild(toolbar);
         editorContainer.appendChild(editorPreviewContainer);
@@ -728,6 +1067,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const editor = document.querySelector('.markdown-editor');
         if (!editor) return;
         
+        // Save current editor content before switching
+        if (state.selectedClass) {
+            state.progressTracker.updateResourceProgress(
+                state.selectedClass,
+                'document',
+                docName,
+                {
+                    content: editor.value,
+                    lastUpdated: new Date().toISOString()
+                }
+            );
+        }
+        
         createMarkdownViewerWithEdit(className, docName, editor.value);
     }
 
@@ -767,5 +1119,86 @@ document.addEventListener('DOMContentLoaded', function() {
                 errorElement.parentNode.removeChild(errorElement);
             }
         }, 5000);
+    }
+
+    // === PROGRESS MANAGEMENT FUNCTIONS ===
+    function saveCurrentProgress() {
+        if (state.selectedClass) {
+            const classProgress = state.progressTracker.getCurrentClassProgress(state.selectedClass);
+            
+            // Save current resource being viewed
+            if (state.currentPlayer) {
+                const currentResource = getCurrentResourceInfo();
+                if (currentResource) {
+                    state.progressTracker.updateClassProgress(state.selectedClass, {
+                        currentResource: currentResource,
+                        lastViewed: new Date().toISOString()
+                    });
+                }
+            }
+        }
+    }
+
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            saveCurrentProgress();
+        } else {
+            // Restore progress when tab becomes visible
+            restoreProgressForCurrentClass();
+        }
+    }
+
+    function getCurrentResourceInfo() {
+        if (!state.currentPlayer) return null;
+        
+        // Check if it's a document preview
+        const markdownViewer = state.currentPlayer.querySelector('.markdown-viewer');
+        if (markdownViewer) {
+            return {
+                type: 'document',
+                id: 'markdown-viewer',
+                scrollPosition: markdownViewer.scrollTop
+            };
+        }
+        
+        // Check if it's a PDF
+        const pdfEmbed = state.currentPlayer.querySelector('embed[type="application/pdf"]');
+        if (pdfEmbed) {
+            return {
+                type: 'document',
+                id: 'pdf-viewer',
+                // PDF progress tracking would need additional implementation
+                progress: 0
+            };
+        }
+        
+        return null;
+    }
+
+    function restoreProgressForCurrentClass() {
+        if (!state.selectedClass) return;
+        
+        const classProgress = state.progressTracker.restoreClassProgress(state.selectedClass);
+        if (classProgress.currentResource) {
+            restoreResourceProgress(classProgress.currentResource);
+        }
+    }
+
+    function restoreResourceProgress(resourceInfo) {
+        if (!resourceInfo) return;
+        
+        switch (resourceInfo.type) {
+            case 'document':
+                if (resourceInfo.scrollPosition !== undefined) {
+                    // Restore document scroll position
+                    setTimeout(() => {
+                        const viewer = document.querySelector('.markdown-viewer');
+                        if (viewer) {
+                            viewer.scrollTop = resourceInfo.scrollPosition;
+                        }
+                    }, 100);
+                }
+                break;
+        }
     }
 });
