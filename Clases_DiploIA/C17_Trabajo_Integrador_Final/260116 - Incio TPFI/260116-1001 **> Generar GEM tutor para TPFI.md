@@ -1,3 +1,9 @@
+### 260116-1001 **> RMONLA
+Quiero que me generes o me expliques los pasos a serguir para armar un gem que me ayude a crear un trabajo final e base al pdf
+---
+
+### 260116-1002 **> IA
+
 Hola, Ricardo. Es un gusto saludarte. Considerando que ya eres **Licenciado** y estás cursando esta **Diplomatura en IA para No Programadores**, crear un "Gem" personalizado es una excelente estrategia de "asistente de desarrollo".
 
 Dado que trabajas en el área de **TIC de tu Facultad**, gestionas servidores **Debian**, usas **Proxmox** y lideras el proyecto **rm-OIS**, tienes una mina de oro de "puntos de dolor" reales para automatizar.
