@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clases DiploIA</title>
+    <title>Clases DiploIA v6.1</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
 </head>
+
 <body>
     <div class="container">
         <div class="sidebar" id="documents-sidebar">
+            <div class="sidebar-header">
+                <h3>Recursos</h3>
+                <button id="sidebar-toggle-btn" class="icon-btn" title="Toggle Sidebar">📖</button>
+            </div>
+
             <div class="selector-container">
                 <select id="class-selector" class="dropdown">
                     <option value="">Seleccione una clase</option>
                 </select>
             </div>
-            <h3>Recursos</h3>
+
+            <div class="search-container">
+                <input type="text" id="class-search" placeholder="🔍 Buscar clase..." class="search-input">
+            </div>
+
             <div id="documents-list"></div>
+
+            <div class="sidebar-footer">
+                <button id="dark-mode-toggle" class="icon-btn" title="Modo Oscuro">🌙</button>
+                <div class="version-tag">v6.1</div>
+            </div>
         </div>
         <main>
             <div class="class-title-container">
@@ -27,6 +45,11 @@
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>

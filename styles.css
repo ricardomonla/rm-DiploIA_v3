@@ -6,7 +6,23 @@
     --text-color: #333;
     --light-bg: #f9f9f9;
     --dark-bg: #2c3e50;
+    --sidebar-bg: #ffffff;
+    --card-bg: #ffffff;
+    --border-color: #dddddd;
     --transition-speed: 0.3s;
+}
+
+/* Dark Mode Variables */
+.dark-mode {
+    --primary-color: #3498db;
+    --secondary-color: #5dade2;
+    --accent-color: #e74c3c;
+    --text-color: #ecf0f1;
+    --light-bg: #1a1a1a;
+    --dark-bg: #121212;
+    --sidebar-bg: #252525;
+    --card-bg: #2d2d2d;
+    --border-color: #444444;
 }
 
 body {
@@ -134,7 +150,8 @@ header h1 {
     text-align: center;
     transition: opacity var(--transition-speed) ease;
     flex: 1;
-    min-width: 0; /* Allow shrinking */
+    min-width: 0;
+    /* Allow shrinking */
 }
 
 #youtube-player {
@@ -146,16 +163,93 @@ header h1 {
 }
 
 .sidebar {
-    min-width: 250px;
+    min-width: 280px;
     max-width: 400px;
     width: 25%;
-    background-color: white;
-    border-right: 1px solid #ddd;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
     padding: 15px;
     height: 100vh;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     transition: all var(--transition-speed) ease;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 100;
+}
+
+.sidebar.collapsed {
+    min-width: 60px;
+    width: 60px;
+    padding: 15px 5px;
+}
+
+.sidebar.collapsed h3,
+.sidebar.collapsed .selector-container,
+.sidebar.collapsed .search-container,
+.sidebar.collapsed #documents-list {
+    display: none;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.version-tag {
+    font-size: 0.75rem;
+    color: var(--text-color);
+    opacity: 0.6;
+}
+
+.icon-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    transition: background var(--transition-speed);
+}
+
+.icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark-mode .icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-container {
+    margin-bottom: 15px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }
 
 .sidebar h3 {
@@ -236,8 +330,13 @@ header h1 {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Mobile compatibility */
@@ -279,7 +378,8 @@ main {
     padding: 0;
     display: flex;
     flex-direction: column;
-    min-width: 0; /* Allow shrinking */
+    min-width: 0;
+    /* Allow shrinking */
 }
 
 /* Class title container */
@@ -287,10 +387,10 @@ main {
     margin-bottom: 20px;
     text-align: center;
     padding: 15px;
-    background-color: white;
+    background-color: var(--card-bg);
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
 }
 
 .class-title-container h2 {
@@ -319,7 +419,8 @@ main {
 .sidebar .selector-container {
     margin-bottom: 20px;
     text-align: left;
-    margin-top: 0; /* Asegurar que esté alineado en la parte superior */
+    margin-top: 0;
+    /* Asegurar que esté alineado en la parte superior */
 }
 
 .sidebar .dropdown {
@@ -329,15 +430,18 @@ main {
 
 /* Alinear selector y contenedor de selectores a la misma altura superior */
 .container {
-    align-items: flex-start; /* Alinear ambos contenedores en la parte superior */
+    align-items: flex-start;
+    /* Alinear ambos contenedores en la parte superior */
 }
 
 .sidebar {
-    margin-top: 0; /* Asegurar que el sidebar comience desde la parte superior */
+    margin-top: 0;
+    /* Asegurar que el sidebar comience desde la parte superior */
 }
 
 main {
-    margin-top: 0; /* Asegurar que el main comience desde la parte superior */
+    margin-top: 0;
+    /* Asegurar que el main comience desde la parte superior */
 }
 
 /* Asegurar que el selector esté alineado con el contenedor de selectores */
@@ -455,7 +559,8 @@ main .selector-container {
     margin: 20px 0;
 }
 
-.markdown-viewer ul, .markdown-viewer ol {
+.markdown-viewer ul,
+.markdown-viewer ol {
     padding-left: 20px;
     margin: 10px 0;
 }

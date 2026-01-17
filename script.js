@@ -1,7 +1,8 @@
 // Main application logic for the dynamic web page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
+        version: '6.1',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -53,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     resources: {}
                 };
             }
-            
+
             Object.assign(this.progressData.classes[classId], updates);
             this.progressData.lastActivity = new Date().toISOString();
             this.saveProgressData();
@@ -64,13 +65,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!classProgress.resources[resourceType]) {
                 classProgress.resources[resourceType] = {};
             }
-            
+
             classProgress.resources[resourceType][resourceId] = {
                 ...classProgress.resources[resourceType][resourceId],
                 ...progress,
                 lastUpdated: new Date().toISOString()
             };
-            
+
             this.updateClassProgress(classId, { resources: classProgress.resources });
         }
 
@@ -93,8 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
         classesData: { clases: [] },
         currentPlayer: null,
         selectedClass: null,
-        docusDir: '', // Will be loaded from docus.json
-        progressTracker: new ProgressTracker() // Initialize progress tracking
+        docusDir: '',
+        progressTracker: new ProgressTracker(),
+        isDarkMode: localStorage.getItem('darkMode') === 'true',
+        isSidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true'
     };
 
     // === DOM ELEMENTS ===
@@ -102,7 +105,11 @@ document.addEventListener('DOMContentLoaded', function() {
         classSelector: document.getElementById('class-selector'),
         youtubePlayer: document.getElementById('youtube-player'),
         documentsList: document.getElementById('documents-list'),
-        selectedClassTitle: document.getElementById('selected-class-title')
+        selectedClassTitle: document.getElementById('selected-class-title'),
+        classSearch: document.getElementById('class-search'),
+        darkModeToggle: document.getElementById('dark-mode-toggle'),
+        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
+        sidebar: document.getElementById('documents-sidebar')
     };
 
     // === INITIALIZATION ===
@@ -111,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // === MAIN FUNCTIONS ===
     async function init() {
         try {
+            applyInitialUIState();
             await loadDocusConfig();
             await loadClassesData();
             populateDropdown();
@@ -122,17 +130,61 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function applyInitialUIState() {
+        if (state.isDarkMode) document.body.classList.add('dark-mode');
+        if (state.isSidebarCollapsed) elements.sidebar.classList.add('collapsed');
+        updateDarkModeIcon();
+    }
+
     function setupEventListeners() {
         elements.classSelector.addEventListener('change', handleClassSelection);
         elements.classSelector.addEventListener('change', (e) => {
             localStorage.setItem('selectedClass', e.target.value);
         });
-        
+
+        // Search Filter
+        elements.classSearch.addEventListener('input', handleSearch);
+
+        // Dark Mode Toggle
+        elements.darkModeToggle.addEventListener('click', toggleDarkMode);
+
+        // Sidebar Toggle
+        elements.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+
         // Add window unload event to save progress
         window.addEventListener('beforeunload', saveCurrentProgress);
-        
+
         // Add visibility change event to handle tab switching
         document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    function handleSearch() {
+        const term = elements.classSearch.value.toLowerCase();
+        const options = elements.classSelector.options;
+
+        for (let i = 1; i < options.length; i++) {
+            const text = options[i].textContent.toLowerCase();
+            const match = text.includes(term);
+            options[i].style.display = match ? '' : 'none';
+        }
+    }
+
+    function toggleDarkMode() {
+        state.isDarkMode = !state.isDarkMode;
+        document.body.classList.toggle('dark-mode', state.isDarkMode);
+        localStorage.setItem('darkMode', state.isDarkMode);
+        updateDarkModeIcon();
+    }
+
+    function updateDarkModeIcon() {
+        elements.darkModeToggle.textContent = state.isDarkMode ? '☀️' : '🌙';
+    }
+
+    function toggleSidebar() {
+        state.isSidebarCollapsed = !state.isSidebarCollapsed;
+        elements.sidebar.classList.toggle('collapsed', state.isSidebarCollapsed);
+        localStorage.setItem('sidebarCollapsed', state.isSidebarCollapsed);
+        elements.sidebarToggleBtn.textContent = state.isSidebarCollapsed ? '📖' : '📕';
     }
 
     // === CONFIGURATION LOADING ===
@@ -161,48 +213,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // === DATA LOADING ===
     async function loadClassesData() {
         try {
-            console.log('Loading classes data from subdirectories...');
+            console.log('Loading classes data from manifest...');
+            const response = await fetch('index.json');
+            if (!response.ok) throw new Error('Failed to load classes manifest');
 
-            const subdirectories = await fetchSubdirectories();
-            console.log('Fetched subdirectories:', subdirectories);
+            const manifest = await response.json();
+            // Initialize with empty details, will be loaded on demand (Lazy Loading)
+            state.classesData.clases = manifest.clases.map(dirName => ({
+                nombre: dirName,
+                isLoaded: false,
+                docus: []
+            }));
 
-            state.classesData.clases = await Promise.all(
-                subdirectories.map(dirName => loadClassData(dirName))
-            );
-
-            console.log('Classes data loaded:', state.classesData);
+            console.log('Classes manifest loaded:', state.classesData.clases.length, 'classes found');
 
         } catch (error) {
-            console.error('Error loading classes data:', error);
+            console.error('Error loading manifest:', error);
             throw error;
         }
     }
 
+    // Function to fetch subdirectories (Now legacy/fallback or for specific uses, but manifest is preferred)
     async function fetchSubdirectories() {
-        console.log('Fetching subdirectories from:', state.docusDir);
-        const response = await fetch(state.docusDir);
-        if (!response.ok) throw new Error('Failed to load classes directory');
-
-        const html = await response.text();
-        console.log('Directory HTML response:', html.substring(0, 500)); // Log first 500 chars
-        const regex = /href="([^"]+)"/g;
-        const subdirectories = [];
-        let match;
-
-        while ((match = regex.exec(html)) !== null) {
-            const href = match[1];
-            console.log('Found href:', href);
-            if (href && href.endsWith('/') && !href.includes('..')) {
-                const dirName = decodeURIComponent(href.replace('/', ''));
-                console.log('Potential dirName:', dirName);
-                if (dirName.startsWith('C') && dirName.includes('_')) {
-                    subdirectories.push(dirName);
-                }
-            }
-        }
-
-        console.log('Filtered subdirectories:', subdirectories);
-        return subdirectories;
+        // Keeping this as a placeholder or removing if not needed elsewhere
+        return state.classesData.clases.map(c => c.nombre);
     }
 
     async function loadClassData(dirName) {
@@ -279,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // === UI MANAGEMENT ===
     function populateDropdown() {
         elements.classSelector.innerHTML = '<option value="">Seleccione una clase</option>';
-        
+
         if (state.classesData.clases?.length > 0) {
             for (const clase of state.classesData.clases) {
                 const option = createClassOption(clase);
@@ -296,11 +330,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function formatClassName(clase) {
+        let name = clase.nombre.replace('C', 'Clase ').replace(/_/g, ' ');
         if (clase.class_number && clase.class_name) {
             const classNum = String(clase.class_number).padStart(2, '0');
-            return `C${classNum} - ${clase.class_name}`;
+            name = `C${classNum} - ${clase.class_name}`;
         }
-        return clase.nombre.replace('C', 'Clase ').replace(/_/g, ' ');
+
+        // Show completion checkmark
+        const progress = state.progressTracker.getClassProgress(clase.nombre);
+        const videoRes = Object.values(progress.resources.video || {})[0];
+        if (videoRes && videoRes.progress > 90) {
+            name = '✅ ' + name;
+        }
+
+        return name;
     }
 
     function updateClassTitle(title) {
@@ -335,14 +378,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         state.selectedClass = selectedClassName;
-        
-        // Reload the class data to get fresh data.json
-        const selectedClass = await reloadClassData(selectedClassName);
+
+        // Lazy Loading: Check if class data is already loaded
+        let selectedClass = state.classesData.clases.find(clase => clase.nombre === selectedClassName);
+
+        if (selectedClass && !selectedClass.isLoaded) {
+            console.log(`Lazy loading data for ${selectedClassName}...`);
+            selectedClass = await reloadClassData(selectedClassName);
+            selectedClass.isLoaded = true;
+        }
+
         if (selectedClass) {
             updateClassTitle(formatClassName(selectedClass));
             loadYouTubeVideo(selectedClass);
             displayDocuments(selectedClass);
-            
+
             // Restore progress for this class
             setTimeout(() => {
                 restoreProgressForCurrentClass();
@@ -355,131 +405,106 @@ document.addEventListener('DOMContentLoaded', function() {
         clearPlayer();
 
         if (!clase.youtube_id || !clase.youtube_id.trim()) {
-            // No video available, just leave the player area empty
             return;
         }
 
         const iframe = createYouTubeIframe(clase.youtube_id);
         elements.youtubePlayer.appendChild(iframe);
         state.currentPlayer = iframe;
-        
+
         // Initialize YouTube API for progress tracking
-        // initializeYouTubeAPI(clase.youtube_id);
+        initializeYouTubeAPI(clase.youtube_id);
     }
 
-    // YouTube API functions (commented out to prevent breaking the app)
-    // function initializeYouTubeAPI(videoId) {
-    //     // Check if YouTube API is already loaded
-    //     if (window.YT && window.YT.Player) {
-    //         createYouTubePlayer(videoId);
-    //     } else {
-    //         // Load YouTube API if not already loaded
-    //         loadYouTubeAPI(videoId);
-    //     }
-    // }
+    // YouTube API functions reactivated for progress tracking
+    function initializeYouTubeAPI(videoId) {
+        if (window.YT && window.YT.Player) {
+            createYouTubePlayer(videoId);
+        } else {
+            loadYouTubeAPI(videoId);
+        }
+    }
 
-    // function loadYouTubeAPI(videoId) {
-    //     const tag = document.createElement('script');
-    //     tag.src = 'https://www.youtube.com/iframe_api';
-    //     const firstScriptTag = document.getElementsByTagName('script')[0];
-    //     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        
-    //     // Set up callback for when API is ready
-    //     window.onYouTubeIframeAPIReady = () => {
-    //         createYouTubePlayer(videoId);
-    //     };
-    // }
+    function loadYouTubeAPI(videoId) {
+        if (document.getElementById('yt-iframe-api')) return;
 
-    // function createYouTubePlayer(videoId) {
-    //     if (window.YT && window.YT.Player) {
-    //         const player = new window.YT.Player('youtube-player iframe', {
-    //             events: {
-    //                 'onStateChange': onPlayerStateChange,
-    //                 'onPlaybackProgress': onPlayerProgress
-    //             }
-    //         });
-            
-    //         // Store player reference
-    //         state.youtubePlayer = player;
-            
-    //         // Restore video progress if available
-    //         restoreVideoProgress(videoId);
-    //     }
-    // }
+        const tag = document.createElement('script');
+        tag.id = 'yt-iframe-api';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    // function onPlayerStateChange(event) {
-    //     const videoId = getCurrentVideoId();
-    //     if (!videoId) return;
+        window.onYouTubeIframeAPIReady = () => {
+            createYouTubePlayer(videoId);
+        };
+    }
 
-    //     switch (event.data) {
-    //         case window.YT.PlayerState.PLAYING:
-    //             // Start tracking progress
-    //             startProgressTracking(videoId);
-    //             break;
-    //         case window.YT.PlayerState.PAUSED:
-    //         case window.YT.PlayerState.ENDED:
-    //             // Save progress immediately when paused or ended
-    //             saveVideoProgress(videoId);
-    //             break;
-    //     }
-    // }
+    function createYouTubePlayer(videoId) {
+        const iframe = elements.youtubePlayer.querySelector('iframe');
+        if (iframe && window.YT && window.YT.Player) {
+            const player = new window.YT.Player(iframe, {
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            });
 
-    // function onPlayerProgress() {
-    //     const videoId = getCurrentVideoId();
-    //     if (videoId) {
-    //         saveVideoProgress(videoId);
-    //     }
-    // }
+            state.youtubePlayer = player;
+            restoreVideoProgress(videoId);
+        }
+    }
 
-    // function startProgressTracking(videoId) {
-    //     if (state.progressInterval) {
-    //         clearInterval(state.progressInterval);
-    //     }
-        
-    //     state.progressInterval = setInterval(() => {
-    //         saveVideoProgress(videoId);
-    //     }, 5000); // Save progress every 5 seconds
-    // }
+    function onPlayerStateChange(event) {
+        const videoId = state.selectedClass ? state.classesData.clases.find(c => c.nombre === state.selectedClass)?.youtube_id : null;
+        if (!videoId) return;
 
-    // function saveVideoProgress(videoId) {
-    //     if (!state.youtubePlayer || !state.selectedClass) return;
+        if (event.data === window.YT.PlayerState.PLAYING) {
+            startProgressTracking(videoId);
+        } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
+            saveVideoProgress(videoId);
+            if (state.progressInterval) clearInterval(state.progressInterval);
+        }
+    }
 
-    //     const currentTime = state.youtubePlayer.getCurrentTime();
-    //     const duration = state.youtubePlayer.getDuration();
-    //     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+    function startProgressTracking(videoId) {
+        if (state.progressInterval) clearInterval(state.progressInterval);
+        state.progressInterval = setInterval(() => {
+            saveVideoProgress(videoId);
+        }, 5000);
+    }
 
-    //     // Update progress tracker
-    //     state.progressTracker.updateResourceProgress(
-    //         state.selectedClass,
-    //         'video',
-    //         videoId,
-    //         {
-    //             currentTime: currentTime,
-    //             duration: duration,
-    //             progress: progress
-    //         }
-    //     );
+    function saveVideoProgress(videoId) {
+        if (!state.youtubePlayer || !state.selectedClass || !state.youtubePlayer.getCurrentTime) return;
 
-    //     // Update progress bar if exists
-    //     updateVideoProgressBar(progress);
-    // }
+        const currentTime = state.youtubePlayer.getCurrentTime();
+        const duration = state.youtubePlayer.getDuration();
+        const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-    // function restoreVideoProgress(videoId) {
-    //     if (!state.selectedClass) return;
+        state.progressTracker.updateResourceProgress(
+            state.selectedClass,
+            'video',
+            videoId,
+            {
+                currentTime: currentTime,
+                duration: duration,
+                progress: progress
+            }
+        );
+    }
 
-    //     const classProgress = state.progressTracker.getClassProgress(state.selectedClass);
-    //     const videoProgress = classProgress.resources.video?.[videoId];
+    function restoreVideoProgress(videoId) {
+        if (!state.selectedClass) return;
 
-    //     if (videoProgress && videoProgress.currentTime > 0) {
-    //         // Wait for player to be ready
-    //         setTimeout(() => {
-    //             if (state.youtubePlayer) {
-    //                 state.youtubePlayer.seekTo(videoProgress.currentTime);
-    //                 showRestoreNotification(`Video restaurado en ${formatTime(videoProgress.currentTime)}`);
-    //             }
-    //         }, 1000);
-    //     }
-    // }
+        const classProgress = state.progressTracker.getClassProgress(state.selectedClass);
+        const videoProgress = classProgress.resources.video?.[videoId];
+
+        if (videoProgress && videoProgress.currentTime > 0) {
+            setTimeout(() => {
+                if (state.youtubePlayer && state.youtubePlayer.seekTo) {
+                    state.youtubePlayer.seekTo(videoProgress.currentTime);
+                }
+            }, 1000);
+        }
+    }
 
     // function getCurrentVideoId() {
     //     if (state.currentPlayer && state.currentPlayer.querySelector) {
@@ -505,18 +530,18 @@ document.addEventListener('DOMContentLoaded', function() {
     //         progressBar.style.backgroundColor = '#ddd';
     //         progressBar.style.borderRadius = '2px';
     //         progressBar.style.zIndex = '1000';
-            
+
     //         const progressFill = document.createElement('div');
     //         progressFill.style.height = '100%';
     //         progressFill.style.backgroundColor = '#007bff';
     //         progressFill.style.width = '0%';
     //         progressFill.style.transition = 'width 0.3s ease';
     //         progressFill.id = 'video-progress-fill';
-            
+
     //         progressBar.appendChild(progressFill);
     //         elements.youtubePlayer.appendChild(progressBar);
     //     }
-        
+
     //     const progressFill = document.getElementById('video-progress-fill');
     //     if (progressFill) {
     //         progressFill.style.width = `${progress}%`;
@@ -538,13 +563,13 @@ document.addEventListener('DOMContentLoaded', function() {
     //         notification.style.zIndex = '1000';
     //         notification.style.opacity = '0';
     //         notification.style.transition = 'opacity 0.3s ease';
-            
+
     //         elements.youtubePlayer.appendChild(notification);
     //     }
-        
+
     //     notification.textContent = message;
     //     notification.style.opacity = '1';
-        
+
     //     setTimeout(() => {
     //         notification.style.opacity = '0';
     //     }, 3000);
@@ -578,22 +603,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // === DOCUMENT MANAGEMENT ===
     function displayDocuments(clase) {
         clearDocuments();
-        
+
         if (!clase.docus?.length) {
             const noDocs = createNoDocumentsMessage();
             elements.documentsList.appendChild(noDocs);
         }
-        
+
         if (clase.youtube_id?.trim()) {
             const youtubeButton = createDocumentButton(`📺 Clase ${clase.class_date}`, () => loadYouTubeVideo(clase));
             elements.documentsList.appendChild(youtubeButton);
         }
-        
+
         if (clase.docus?.length > 0) {
+            const docProgress = state.progressTracker.getClassProgress(clase.nombre).resources.document || {};
             for (const doc of clase.docus) {
+                const isAccessed = !!docProgress[doc];
                 const docButton = createDocumentButton(
                     `${getDocumentIcon(doc)} ${formatDocumentName(doc)}`,
-                    () => previewDocument(clase.nombre, doc)
+                    () => previewDocument(clase.nombre, doc),
+                    isAccessed
                 );
                 elements.documentsList.appendChild(docButton);
             }
@@ -624,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadCampusContent(url) {
         clearPlayer();
-        
+
         const iframeContainer = document.createElement('div');
         iframeContainer.style.width = '100%';
         iframeContainer.style.height = '100%';
@@ -632,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function() {
         iframeContainer.style.borderRadius = '8px';
         iframeContainer.style.overflow = 'hidden';
         iframeContainer.style.position = 'relative';
-        
+
         // Loading indicator
         const loadingIndicator = document.createElement('div');
         loadingIndicator.textContent = 'Cargando contenido del campus...';
@@ -645,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.style.borderRadius = '8px';
         loadingIndicator.style.zIndex = '100';
         loadingIndicator.style.textAlign = 'center';
-        
+
         const iframe = document.createElement('iframe');
         iframe.src = url;
         iframe.width = '100%';
@@ -654,17 +682,17 @@ document.addEventListener('DOMContentLoaded', function() {
         iframe.allowFullscreen = true;
         iframe.style.border = 'none';
         iframe.style.opacity = '0';
-        
+
         // Show loading indicator until iframe loads
-        iframe.onload = function() {
+        iframe.onload = function () {
             iframe.style.opacity = '1';
             iframeContainer.removeChild(loadingIndicator);
         };
-        
-        iframe.onerror = function() {
+
+        iframe.onerror = function () {
             loadingIndicator.textContent = 'Error al cargar el contenido del campus';
             loadingIndicator.style.color = '#dc3545';
-            
+
             const retryButton = document.createElement('button');
             retryButton.textContent = 'Reintentar';
             retryButton.style.marginTop = '10px';
@@ -673,7 +701,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingIndicator.appendChild(document.createElement('br'));
             loadingIndicator.appendChild(retryButton);
         };
-        
+
         const header = document.createElement('div');
         header.style.padding = '10px';
         header.style.backgroundColor = '#f0f0f0';
@@ -681,10 +709,10 @@ document.addEventListener('DOMContentLoaded', function() {
         header.style.display = 'flex';
         header.style.justifyContent = 'space-between';
         header.style.alignItems = 'center';
-        
+
         const title = document.createElement('strong');
         title.textContent = 'Contenido del Campus Virtual';
-        
+
         const closeButton = document.createElement('button');
         closeButton.textContent = '✕ Cerrar';
         closeButton.style.padding = '5px 10px';
@@ -694,22 +722,26 @@ document.addEventListener('DOMContentLoaded', function() {
         closeButton.style.borderRadius = '3px';
         closeButton.style.cursor = 'pointer';
         closeButton.onclick = () => clearPlayer();
-        
+
         header.appendChild(title);
         header.appendChild(closeButton);
-        
+
         iframeContainer.appendChild(header);
         iframeContainer.appendChild(iframe);
         iframeContainer.appendChild(loadingIndicator);
-        
+
         elements.youtubePlayer.appendChild(iframeContainer);
         state.currentPlayer = iframeContainer;
     }
 
-    function createDocumentButton(text, onClick) {
+    function createDocumentButton(text, onClick, isAccessed = false) {
         const button = document.createElement('button');
         button.className = 'document-item';
-        button.textContent = text;
+        if (isAccessed) {
+            button.innerHTML = `<span>${text}</span> <span style="float:right">✓</span>`;
+        } else {
+            button.textContent = text;
+        }
         button.onclick = onClick;
         return button;
     }
@@ -738,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             showError('Document type not supported for preview');
         }
-        
+
         // Track document access
         if (state.selectedClass) {
             state.progressTracker.updateResourceProgress(
@@ -798,10 +830,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(docPath);
             if (!response.ok) throw new Error('Failed to load document');
-            
+
             const markdown = await response.text();
             createMarkdownViewerWithEdit(className, docName, markdown);
-            
+
             // Restore markdown scroll position if available
             restoreMarkdownScrollPosition(className, docName);
         } catch (error) {
@@ -829,21 +861,29 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(docPath);
             if (!response.ok) throw new Error('Failed to load document');
-            
+
             const text = await response.text();
             const pre = document.createElement('pre');
-            pre.textContent = text;
+            pre.className = 'language-yaml';
+            const code = document.createElement('code');
+            code.textContent = text;
+            pre.appendChild(code);
+
             pre.style.whiteSpace = 'pre-wrap';
             pre.style.padding = '20px';
-            pre.style.backgroundColor = '#f8f9fa';
+            pre.style.backgroundColor = 'var(--card-bg)';
             pre.style.borderRadius = '5px';
             pre.style.height = '100%';
             pre.style.overflow = 'auto';
             pre.style.fontFamily = 'monospace';
-            pre.style.color = '#333';
-            
+            pre.style.color = 'var(--text-color)';
+
             elements.youtubePlayer.appendChild(pre);
             state.currentPlayer = pre;
+
+            if (window.Prism) {
+                Prism.highlightElement(code);
+            }
         } catch (error) {
             showError('Error loading document: ' + error.message);
         }
@@ -852,14 +892,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // === MARKDOWN EDITOR ===
     function createMarkdownViewerWithEdit(className, docName, markdownContent) {
         clearPlayer();
-        
+
         const viewerContainer = createMarkdownContainer();
         const actionBar = createActionBar(className, docName, markdownContent);
         const preview = createMarkdownPreview(markdownContent);
-        
+
         viewerContainer.appendChild(actionBar);
         viewerContainer.appendChild(preview);
-        
+
         elements.youtubePlayer.appendChild(viewerContainer);
         state.currentPlayer = viewerContainer;
     }
@@ -881,11 +921,11 @@ document.addEventListener('DOMContentLoaded', function() {
         actionBar.style.padding = '5px';
         actionBar.style.backgroundColor = '#f0f0f0';
         actionBar.style.borderRadius = '5px';
-        
+
         const editButton = createToolbarButton('✏️ Editar Markdown', () => {
             createMarkdownEditor(className, docName, markdownContent);
         });
-        
+
         actionBar.appendChild(editButton);
         return actionBar;
     }
@@ -895,11 +935,17 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.className = 'markdown-viewer';
         preview.style.flex = '1';
         preview.style.padding = '20px';
-        preview.style.backgroundColor = '#f8f9fa';
+        preview.style.backgroundColor = 'var(--card-bg)';
         preview.style.borderRadius = '5px';
         preview.style.overflow = 'auto';
         preview.style.textAlign = 'left';
         preview.innerHTML = marked.parse(markdownContent);
+
+        // Syntax Highlighting
+        if (window.Prism) {
+            Prism.highlightAllUnder(preview);
+        }
+
         // Make all links open in new tab
         const links = preview.querySelectorAll('a');
         links.forEach(link => link.setAttribute('target', '_blank'));
@@ -908,22 +954,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createMarkdownEditor(className, docName, markdownContent) {
         clearPlayer();
-        
+
         const editorContainer = createMarkdownContainer();
         const toolbar = createEditorToolbar(className, docName);
         const editorPreviewContainer = createEditorPreviewContainer(className, docName);
-        
+
         // Initialize editor with content
         const editor = editorPreviewContainer.querySelector('.markdown-editor');
         editor.value = markdownContent;
-        
+
         // Initial preview
         const preview = editorPreviewContainer.querySelector('.markdown-preview');
         preview.innerHTML = marked.parse(markdownContent);
         // Make all links open in new tab
         const links = preview.querySelectorAll('a');
         links.forEach(link => link.setAttribute('target', '_blank'));
-        
+
         // Add scroll tracking for markdown editor
         editor.addEventListener('scroll', () => {
             if (state.selectedClass) {
@@ -938,10 +984,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
             }
         });
-        
+
         editorContainer.appendChild(toolbar);
         editorContainer.appendChild(editorPreviewContainer);
-        
+
         elements.youtubePlayer.appendChild(editorContainer);
         state.currentPlayer = editorContainer;
     }
@@ -954,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function() {
         toolbar.style.padding = '5px';
         toolbar.style.backgroundColor = '#f0f0f0';
         toolbar.style.borderRadius = '5px';
-        
+
         const buttons = [
             { text: '🔤', action: () => wrapSelectedText('**', '**') },
             { text: '🔤', action: () => wrapSelectedText('*', '*') },
@@ -964,11 +1010,11 @@ document.addEventListener('DOMContentLoaded', function() {
             { text: '💾', action: () => saveMarkdownFile(className, docName) },
             { text: '🔙', action: () => backToViewer(className, docName) }
         ];
-        
+
         for (const btn of buttons) {
             toolbar.appendChild(createToolbarButton(btn.text, btn.action));
         }
-        
+
         return toolbar;
     }
 
@@ -978,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', function() {
         container.style.flex = '1';
         container.style.gap = '10px';
         container.style.overflow = 'hidden';
-        
+
         const editor = document.createElement('textarea');
         editor.className = 'markdown-editor';
         editor.style.flex = '1';
@@ -989,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', function() {
         editor.style.borderRadius = '5px';
         editor.style.resize = 'none';
         editor.style.overflow = 'auto';
-        
+
         const preview = document.createElement('div');
         preview.className = 'markdown-preview';
         preview.style.flex = '1';
@@ -999,14 +1045,14 @@ document.addEventListener('DOMContentLoaded', function() {
         preview.style.borderRadius = '5px';
         preview.style.overflow = 'auto';
         preview.style.textAlign = 'left';
-        
+
         editor.addEventListener('input', () => {
             preview.innerHTML = marked.parse(editor.value);
             // Make all links open in new tab
             const links = preview.querySelectorAll('a');
             links.forEach(link => link.setAttribute('target', '_blank'));
         });
-        
+
         container.appendChild(editor);
         container.appendChild(preview);
         return container;
@@ -1029,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function wrapSelectedText(prefix, suffix) {
         const editor = document.querySelector('.markdown-editor');
         if (!editor) return;
-        
+
         const start = editor.selectionStart;
         const end = editor.selectionEnd;
         const selectedText = editor.value.substring(start, end);
@@ -1040,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function insertAtCursor(text) {
         const editor = document.querySelector('.markdown-editor');
         if (!editor) return;
-        
+
         const pos = editor.selectionStart;
         editor.setRangeText(text, pos, pos, 'end');
     }
@@ -1048,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveMarkdownFile(className, docName) {
         const editor = document.querySelector('.markdown-editor');
         if (!editor) return;
-        
+
         const content = editor.value;
         const blob = new Blob([content], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
@@ -1059,14 +1105,14 @@ document.addEventListener('DOMContentLoaded', function() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         showError('Archivo guardado como: ' + docName);
     }
 
     function backToViewer(className, docName) {
         const editor = document.querySelector('.markdown-editor');
         if (!editor) return;
-        
+
         // Save current editor content before switching
         if (state.selectedClass) {
             state.progressTracker.updateResourceProgress(
@@ -1079,7 +1125,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             );
         }
-        
+
         createMarkdownViewerWithEdit(className, docName, editor.value);
     }
 
@@ -1108,12 +1154,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorElement = document.createElement('div');
         errorElement.className = 'error-message';
         errorElement.textContent = message;
-        
+
         const videoContainer = document.querySelector('.video-container');
         if (videoContainer) {
             videoContainer.parentNode.insertBefore(errorElement, videoContainer);
         }
-        
+
         setTimeout(() => {
             if (errorElement.parentNode) {
                 errorElement.parentNode.removeChild(errorElement);
@@ -1125,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveCurrentProgress() {
         if (state.selectedClass) {
             const classProgress = state.progressTracker.getCurrentClassProgress(state.selectedClass);
-            
+
             // Save current resource being viewed
             if (state.currentPlayer) {
                 const currentResource = getCurrentResourceInfo();
@@ -1150,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getCurrentResourceInfo() {
         if (!state.currentPlayer) return null;
-        
+
         // Check if it's a document preview
         const markdownViewer = state.currentPlayer.querySelector('.markdown-viewer');
         if (markdownViewer) {
@@ -1160,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollPosition: markdownViewer.scrollTop
             };
         }
-        
+
         // Check if it's a PDF
         const pdfEmbed = state.currentPlayer.querySelector('embed[type="application/pdf"]');
         if (pdfEmbed) {
@@ -1171,13 +1217,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 progress: 0
             };
         }
-        
+
         return null;
     }
 
     function restoreProgressForCurrentClass() {
         if (!state.selectedClass) return;
-        
+
         const classProgress = state.progressTracker.restoreClassProgress(state.selectedClass);
         if (classProgress.currentResource) {
             restoreResourceProgress(classProgress.currentResource);
@@ -1186,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function restoreResourceProgress(resourceInfo) {
         if (!resourceInfo) return;
-        
+
         switch (resourceInfo.type) {
             case 'document':
                 if (resourceInfo.scrollPosition !== undefined) {
