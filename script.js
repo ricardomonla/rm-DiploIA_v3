@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '6.1',
+        version: '6.2',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
