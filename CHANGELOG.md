@@ -1,5 +1,15 @@
 # Changelog - Clases DiploIA
 
+## [6.8] - 2026-01-18
+### Añadido
+- **Adopción Total de Plantilla "Cyber-Tech"**:
+    - Estética inspirada en `theapexweb.com` replicada íntegramente con CSS/HTML.
+    - **Atmósfera Inmersiva**: Implementación de "Glow Blobs" de fondo con gradientes radiales animados y desenfoque (blur).
+    - **Glassmorphism Avanzado**: Contenedores (Sidebar, Header) con `backdrop-filter` para un efecto de cristal esmerilado premium.
+    - **Neo-Glow System**: Bordes con brillo neón y sombras proyectadas (`box-shadow`) en azul vibrante (#00A3FF).
+    - **Identidad Visual**: Tipografía futurista **Rajdhani** para encabezados e **Inter** para cuerpo de texto.
+- **Micro-interacciones**: Transiciones de escala y brillo en botones al pasar el pulsor.
+
 ## [6.7] - 2026-01-18
 ### Añadido
 - **Simetría y Balance Visual**:
