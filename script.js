@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '6.5',
+        version: '6.6',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -214,55 +214,35 @@ document.addEventListener('DOMContentLoaded', function () {
             const manifest = state.manifest;
             if (!manifest || !manifest.clases) throw new Error('Manifest not loaded');
 
-            // Initialize with empty details, will be loaded on demand (Lazy Loading)
-            state.classesData.clases = manifest.clases.map(dirName => ({
-                nombre: dirName,
-                isLoaded: false,
-                docus: []
+            // All data is already in the manifest (v6.6)
+            state.classesData.clases = manifest.clases.map(clase => ({
+                ...clase,
+                nombre: clase.folder, // Keep internal 'nombre' as folder name for compatibility
+                isLoaded: true
             }));
 
-            console.log('Classes manifest integrated:', state.classesData.clases.length, 'classes found');
+            console.log('Classes metadata fully integrated:', state.classesData.clases.length, 'classes');
 
         } catch (error) {
-            console.error('Error integrating manifest:', error);
+            console.error('Error integrating metadata:', error);
             throw error;
         }
     }
 
     // Function to fetch subdirectories (Now legacy/fallback or for specific uses, but manifest is preferred)
     async function fetchSubdirectories() {
-        // Keeping this as a placeholder or removing if not needed elsewhere
-        return state.classesData.clases.map(c => c.nombre);
+        // Obsolete in v6.6, handled by index.json
+        return [];
     }
 
-    async function loadClassData(dirName) {
-        try {
-            console.log(`Loading data for ${dirName}`);
-            const [dataResponse, docsResponse] = await Promise.all([
-                fetch(`${state.docusDir}${dirName}/data.json?t=${Date.now()}`),
-                fetch(`${state.docusDir}${dirName}/`)
-            ]);
-
-            console.log(`Data response for ${dirName}:`, dataResponse.ok, dataResponse.status);
-            const data = dataResponse.ok ? await dataResponse.json() : {};
-            console.log(`Parsed data for ${dirName}:`, data);
-
-            console.log(`Docs response for ${dirName}:`, docsResponse.ok, docsResponse.status);
-            const docs = docsResponse.ok ? await extractDocuments(docsResponse) : [];
-            console.log(`Extracted docs for ${dirName}:`, docs);
-
-            return {
-                nombre: dirName,
-                youtube_id: data.youtube_id || '',
-                campus_id: data.campus_id || '',
-                class_number: data.class_number || '',
-                class_name: data.class_name || '',
-                class_date: data.class_date || '',
-                docus: docs
-            };
-
-        } catch (error) {
-            console.error(`Error loading data for ${dirName}:`, error);
+    async function reloadClassData(dirName) {
+        // In v6.6, data is loaded once from manifest. No need to reload individual class data.
+        // This function now just returns the existing class data from state.
+        const existingClass = state.classesData.clases.find(clase => clase.nombre === dirName);
+        if (existingClass) {
+            return existingClass;
+        } else {
+            console.warn(`Class data for ${dirName} not found in manifest during reloadClassData.`);
             return {
                 nombre: dirName,
                 youtube_id: '',

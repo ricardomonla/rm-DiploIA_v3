@@ -1,5 +1,10 @@
 # Changelog - Clases DiploIA
 
+## [6.6] - 2026-01-17
+### Añadido
+- Arquitectura ultra-simplificada: Consolidación total de todos los archivos `data.json` de clase en el manifiesto central `index.json`.
+- Eliminación de la carga diferida (lazy loading) de archivos JSON individuales, reduciendo el número de peticiones HTTP totales a una sola para toda la metadata del curso.
+
 ## [6.5] - 2026-01-17
 ### Cambiado
 - Refactorización de claves en `index.json` por consistencia:
