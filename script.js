@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedClass: null,
         docusDir: '',
         progressTracker: new ProgressTracker(),
+        manifest: null,
         isDarkMode: localStorage.getItem('darkMode') === 'true',
         isSidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true'
     };
@@ -190,34 +191,29 @@ document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION LOADING ===
     async function loadDocusConfig() {
         try {
-            const response = await fetch(CONFIG.apiEndpoints.docusConfig);
+            console.log('Loading unified config from index.json...');
+            const response = await fetch('index.json');
             const config = await response.json();
+
+            // Guardar el manifiesto en el estado para reuso
+            state.manifest = config;
 
             state.docusDir = config.docus_dir;
             CONFIG.allowedExtensions = config.allowed_extensions;
             CONFIG.campusUrl = config.campus_url || '';
             CONFIG.youtubeBaseUrl = config.youtube_base_url || 'https://www.youtube.com/embed/';
-
-            console.log('Docus config loaded:', {
-                docusDir: state.docusDir,
-                allowedExtensions: CONFIG.allowedExtensions,
-                campusUrl: CONFIG.campusUrl,
-                youtubeBaseUrl: CONFIG.youtubeBaseUrl
-            });
-
         } catch (error) {
-            console.error('Error loading docus config:', error);
+            console.error('Error loading config:', error);
+            showError('Error al cargar la configuración');
         }
     }
 
     // === DATA LOADING ===
     async function loadClassesData() {
         try {
-            console.log('Loading classes data from manifest...');
-            const response = await fetch('index.json');
-            if (!response.ok) throw new Error('Failed to load classes manifest');
+            const manifest = state.manifest;
+            if (!manifest || !manifest.clases) throw new Error('Manifest not loaded');
 
-            const manifest = await response.json();
             // Initialize with empty details, will be loaded on demand (Lazy Loading)
             state.classesData.clases = manifest.clases.map(dirName => ({
                 nombre: dirName,
@@ -225,10 +221,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 docus: []
             }));
 
-            console.log('Classes manifest loaded:', state.classesData.clases.length, 'classes found');
+            console.log('Classes manifest integrated:', state.classesData.clases.length, 'classes found');
 
         } catch (error) {
-            console.error('Error loading manifest:', error);
+            console.error('Error integrating manifest:', error);
             throw error;
         }
     }
