@@ -26,6 +26,34 @@
     --glow-shadow: 0 0 20px rgba(0, 163, 255, 0.4);
 }
 
+/* Custom Cyber-Tech Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 163, 255, 0.3);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color);
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 163, 255, 0.3) transparent;
+}
+
 /* Base Styles */
 body {
     font-family: 'Inter', sans-serif;

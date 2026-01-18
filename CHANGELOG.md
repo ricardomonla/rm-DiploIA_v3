@@ -1,5 +1,13 @@
 # Changelog - Clases DiploIA
 
+## [6.9] - 2026-01-18
+### Añadido
+- **Refinement "Cyber-Tech Refined"**:
+    - **Custom Scrollbars**: Implementación de barras de desplazamiento personalizadas más delgadas y con estilos neón para eliminar la disonancia visual con el tema oscuro.
+    - **Migración Integral a Lucide Icons**: Reemplazo de todos los emojis por iconos vectoriales (**Lucide Library**) para una estética geométrica, futurista y profesional.
+    - **Iconografía Dinámica**: Los iconos cambian de estado visualmente según la interacción (Abrir/Cerrar, Sol/Luna).
+    - **Checkmarks Modernizados**: Los marcadores de completado ahora utilizan destellos ("✨") y Lucide SVGs para un acabado más limpio.
+
 ## [6.8] - 2026-01-18
 ### Añadido
 - **Adopción Total de Plantilla "Cyber-Tech"**:

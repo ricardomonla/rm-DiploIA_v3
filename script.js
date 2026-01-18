@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '6.8',
+        version: '6.9',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -178,14 +178,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateDarkModeIcon() {
-        elements.darkModeToggle.textContent = state.isDarkMode ? '☀️' : '🌙';
+        const iconName = state.isDarkMode ? 'sun' : 'moon';
+        elements.darkModeToggle.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        lucide.createIcons();
     }
 
     function toggleSidebar() {
         state.isSidebarCollapsed = !state.isSidebarCollapsed;
         elements.sidebar.classList.toggle('collapsed', state.isSidebarCollapsed);
         localStorage.setItem('sidebarCollapsed', state.isSidebarCollapsed);
-        elements.sidebarToggleBtn.textContent = state.isSidebarCollapsed ? '📖' : '📕';
+
+        const iconName = state.isSidebarCollapsed ? 'book' : 'book-open';
+        elements.sidebarToggleBtn.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        lucide.createIcons();
     }
 
     // === CONFIGURATION LOADING ===
@@ -312,11 +317,11 @@ document.addEventListener('DOMContentLoaded', function () {
             name = `C${classNum} - ${clase.class_name}`;
         }
 
-        // Show completion checkmark
+        // Show completion marker (modern)
         const progress = state.progressTracker.getClassProgress(clase.nombre);
         const videoRes = Object.values(progress.resources.video || {})[0];
         if (videoRes && videoRes.progress > 90) {
-            name = '✅ ' + name;
+            name = '✨ ' + name; // Using a subtle spark instead of green check
         }
 
         return name;
@@ -479,13 +484,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateSidebarVideoProgress(progress) {
-        const videoButtons = elements.documentsList.querySelectorAll('.document-item');
+        const videoButtons = elements.documentsList.querySelectorAll('.document-item[data-resource-type="video"]');
         videoButtons.forEach(btn => {
-            if (btn.textContent.includes('📺 Clase')) {
-                const baseText = btn.getAttribute('data-base-text') || btn.textContent.split(' (')[0];
-                btn.setAttribute('data-base-text', baseText);
-                btn.textContent = `${baseText} (${Math.round(progress)}%)`;
-            }
+            const baseText = btn.getAttribute('data-base-text') || btn.querySelector('.item-label').textContent.split(' (')[0];
+            btn.setAttribute('data-base-text', baseText);
+            btn.querySelector('.item-label').textContent = `${baseText} (${Math.round(progress)}%)`;
         });
     }
 
@@ -647,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const videoProgress = state.progressTracker.getClassProgress(clase.nombre).resources.video?.[clase.youtube_id] || {};
             const progressSuffix = videoProgress.progress ? ` (${Math.round(videoProgress.progress)}%)` : '';
             const youtubeButton = createDocumentButton(
-                '📺',
+                'youtube',
                 `Clase ${clase.class_date}${progressSuffix}`,
                 () => {
                     loadYouTubeVideo(clase);
@@ -684,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add Campus button if campus_id is available
         if (clase.campus_id) {
             const campusButton = createDocumentButton(
-                '🏫',
+                'external-link',
                 'Ver Campus Virtual',
                 () => {
                     openCampusUrl(clase);
@@ -697,6 +700,11 @@ document.addEventListener('DOMContentLoaded', function () {
             campusButton.setAttribute('data-resource-id', clase.campus_id);
             campusButton.classList.add('campus-btn');
             elements.documentsList.appendChild(campusButton);
+        }
+
+        // Render all Lucide icons
+        if (window.lucide) {
+            lucide.createIcons();
         }
     }
 
@@ -796,14 +804,14 @@ document.addEventListener('DOMContentLoaded', function () {
         state.currentPlayer = iframeContainer;
     }
 
-    function createDocumentButton(icon, text, onClick, isAccessed = false, tooltip = '') {
+    function createDocumentButton(iconName, text, onClick, isAccessed = false, tooltip = '') {
         const button = document.createElement('button');
         button.className = 'document-item';
         button.title = tooltip;
 
         const iconSpan = document.createElement('span');
         iconSpan.className = 'item-icon';
-        iconSpan.textContent = icon;
+        iconSpan.innerHTML = `<i data-lucide="${iconName}"></i>`;
 
         const textSpan = document.createElement('span');
         textSpan.className = 'item-label';
@@ -815,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isAccessed) {
             const checkSpan = document.createElement('span');
             checkSpan.className = 'item-check';
-            checkSpan.textContent = '✓';
+            checkSpan.innerHTML = `<i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i>`;
             button.appendChild(checkSpan);
         }
 
@@ -1220,14 +1228,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getDocumentIcon(filename) {
         const icons = {
-            '.pdf': '📄',
-            '.md': '📝',
-            '.mp4': '🎥',
-            '.yaml': '⚙️',
-            '.yml': '⚙️'
+            '.pdf': 'file-text',
+            '.md': 'file-edit',
+            '.mp4': 'play-circle',
+            '.yaml': 'settings',
+            '.yml': 'settings'
         };
-        const ext = filename.substring(filename.lastIndexOf('.'));
-        return icons[ext] || '📁';
+        const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+        return icons[ext] || 'file';
     }
 
     function formatDocumentName(filename) {
