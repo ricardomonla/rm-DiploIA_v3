@@ -10,6 +10,7 @@
     --card-bg: #ffffff;
     --border-color: #dddddd;
     --transition-speed: 0.3s;
+    --border-radius: 8px;
 }
 
 /* Dark Mode Variables */
@@ -23,6 +24,7 @@
     --sidebar-bg: #252525;
     --card-bg: #2d2d2d;
     --border-color: #444444;
+    --active-bg: #2980b9;
 }
 
 body {
@@ -37,10 +39,11 @@ body {
 
 .container {
     display: flex;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
     padding: 20px;
     gap: 20px;
+    box-sizing: border-box;
 }
 
 header {
@@ -64,7 +67,7 @@ header h1 {
     padding: 10px;
     font-size: 1rem;
     border: 2px solid var(--primary-color);
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     background-color: white;
     width: 100%;
     max-width: 500px;
@@ -146,12 +149,14 @@ header h1 {
 }
 
 .video-container {
-    margin: 30px 0;
+    margin: 5px 0;
     text-align: center;
     transition: opacity var(--transition-speed) ease;
     flex: 1;
     min-width: 0;
     /* Allow shrinking */
+    border-radius: var(--border-radius);
+    overflow: hidden;
 }
 
 #youtube-player {
@@ -182,14 +187,33 @@ header h1 {
 .sidebar.collapsed {
     min-width: 60px;
     width: 60px;
-    padding: 15px 5px;
+    padding: 15px 0;
 }
 
 .sidebar.collapsed h3,
 .sidebar.collapsed .selector-container,
-.sidebar.collapsed .search-container,
-.sidebar.collapsed #documents-list {
+.sidebar.collapsed .search-container {
     display: none;
+}
+
+.sidebar.collapsed .item-label,
+.sidebar.collapsed .item-check {
+    display: none;
+}
+
+.sidebar.collapsed .document-item {
+    padding: 10px 0;
+    justify-content: center;
+    text-align: center;
+}
+
+.sidebar.collapsed .item-icon {
+    margin-right: 0;
+    font-size: 1.4rem;
+}
+
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
 }
 
 .sidebar-header {
@@ -217,7 +241,7 @@ header h1 {
 .icon-btn {
     background: none;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     padding: 8px;
     cursor: pointer;
     font-size: 1.2rem;
@@ -234,14 +258,14 @@ header h1 {
 }
 
 .search-container {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .search-input {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     background-color: var(--card-bg);
     color: var(--text-color);
     box-sizing: border-box;
@@ -263,43 +287,81 @@ header h1 {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 15px;
 }
 
 .document-item {
     background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     padding: 12px;
     cursor: pointer;
     transition: all var(--transition-speed) ease;
     text-align: left;
     font-weight: bold;
     text-decoration: none;
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
     margin-bottom: 5px;
+    border: 2px solid transparent;
+}
+
+.item-icon {
+    margin-right: 10px;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+}
+
+.item-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-check {
+    margin-left: 5px;
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+.document-item.active {
+    background-color: var(--secondary-color);
+    border-color: white;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.document-item.campus-btn {
+    background-color: #28a745;
+}
+
+.document-item.campus-btn:hover {
+    background-color: #218838;
 }
 
 .document-item:hover {
     background-color: var(--secondary-color);
-    transform: translateX(5px);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .document-item:active {
-    transform: translateX(2px);
+    transform: scale(0.98);
 }
 
 #youtube-player {
     position: relative;
     width: 100%;
-    max-width: 800px;
-    height: 450px;
+    max-width: 100%;
+    max-height: 80vh;
+    aspect-ratio: 16 / 9;
+    height: auto;
     margin: 0 auto;
     background-color: #000;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     overflow: hidden;
 }
 
@@ -398,11 +460,12 @@ main {
 
 /* Class title container */
 .class-title-container {
-    margin-bottom: 20px;
+    margin-top: 0;
+    margin-bottom: 10px;
     text-align: center;
     padding: 15px;
     background-color: var(--card-bg);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--border-color);
 }
@@ -443,9 +506,34 @@ main {
 }
 
 /* Alinear selector y contenedor de selectores a la misma altura superior */
-.container {
-    align-items: flex-start;
-    /* Alinear ambos contenedores en la parte superior */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    line-height: 1;
+}
+
+.sidebar-header .icon-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-footer .icon-btn {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
 }
 
 .sidebar {
@@ -496,10 +584,10 @@ main .selector-container {
 
 .markdown-toolbar {
     display: flex;
-    gap: 5px;
-    padding: 5px;
+    gap: 8px;
+    padding: 8px;
     background-color: #f0f0f0;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     flex-wrap: wrap;
 }
 
@@ -509,7 +597,7 @@ main .selector-container {
     font-family: monospace;
     font-size: 14px;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     resize: none;
     overflow: auto;
     min-height: 200px;
@@ -520,7 +608,7 @@ main .selector-container {
     padding: 15px;
     background-color: #f8f9fa;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     overflow: auto;
     text-align: left;
     min-height: 200px;
@@ -555,7 +643,7 @@ main .selector-container {
 .markdown-viewer pre {
     background-color: #f5f5f5;
     padding: 15px;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     overflow-x: auto;
 }
 

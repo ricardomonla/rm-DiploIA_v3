@@ -1,5 +1,20 @@
 # Changelog - Clases DiploIA
 
+## [6.7] - 2026-01-18
+### Añadido
+- **Simetría y Balance Visual**:
+    - Estandardización de bordes redondeados (**8px**) en toda la interfaz (selectores, inputs, botones, contenedores).
+    - Alineación de **eje horizontal (Axis)**: el botón de colapso y el título de clase comparten ahora el mismo eje central (vertex).
+    - Centrado horizontal de controles en la barra lateral colapsada.
+    - **Tooltips dinámicos** para todos los recursos en la barra lateral colapsada.
+    - **Resaltado visual activo** del recurso seleccionado en el menú lateral.
+- **Diseño Responsivo & Contenido**:
+    - El área de contenido principal ahora ocupa el **100% del ancho** disponible.
+    - Expansión automática del contenido al contraer la barra lateral.
+- **Optimización de Video**:
+    - Límite de altura inteligente (**80vh**) para garantizar que los controles de YouTube siempre sean visibles y accesibles.
+    - Overlay de progreso "Visto: X%" refinado: visibilidad contextual solo para recursos de video.
+
 ## [6.6] - 2026-01-17
 ### Añadido
 - Arquitectura ultra-simplificada: Consolidación total de todos los archivos `data.json` de clase en el manifiesto central `index.json`.

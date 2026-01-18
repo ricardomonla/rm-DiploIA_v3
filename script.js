@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '6.6',
+        version: '6.7',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
         docusDir: '',
         progressTracker: new ProgressTracker(),
         manifest: null,
-        isDarkMode: localStorage.getItem('darkMode') === 'true',
+        isDarkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true',
         isSidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true'
     };
 
@@ -366,8 +366,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (selectedClass) {
             updateClassTitle(formatClassName(selectedClass));
-            loadYouTubeVideo(selectedClass);
             displayDocuments(selectedClass);
+
+            // Auto-select video if available
+            if (selectedClass.youtube_id?.trim()) {
+                loadYouTubeVideo(selectedClass);
+                highlightActiveSidebarItem('video', selectedClass.youtube_id);
+            }
 
             // Restore progress for this class
             setTimeout(() => {
@@ -615,6 +620,18 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.youtubePlayer.removeChild(state.currentPlayer);
             state.currentPlayer = null;
         }
+
+        // Remove progress overlay if it exists
+        const progressDisplay = document.getElementById('video-progress-percentage');
+        if (progressDisplay) {
+            progressDisplay.remove();
+        }
+
+        // Stop progress tracking interval
+        if (state.progressInterval) {
+            clearInterval(state.progressInterval);
+            state.progressInterval = null;
+        }
     }
 
     // === DOCUMENT MANAGEMENT ===
@@ -629,8 +646,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (clase.youtube_id?.trim()) {
             const videoProgress = state.progressTracker.getClassProgress(clase.nombre).resources.video?.[clase.youtube_id] || {};
             const progressSuffix = videoProgress.progress ? ` (${Math.round(videoProgress.progress)}%)` : '';
-            const youtubeButton = createDocumentButton(`📺 Clase ${clase.class_date}${progressSuffix}`, () => loadYouTubeVideo(clase));
-            youtubeButton.setAttribute('data-base-text', `📺 Clase ${clase.class_date}`);
+            const youtubeButton = createDocumentButton(
+                '📺',
+                `Clase ${clase.class_date}${progressSuffix}`,
+                () => {
+                    loadYouTubeVideo(clase);
+                    highlightActiveSidebarItem('video', clase.youtube_id);
+                },
+                false,
+                `🎥 Clase ${clase.class_date}` // Tooltip
+            );
+            youtubeButton.setAttribute('data-resource-type', 'video');
+            youtubeButton.setAttribute('data-resource-id', clase.youtube_id);
             elements.documentsList.appendChild(youtubeButton);
         }
 
@@ -639,21 +666,36 @@ document.addEventListener('DOMContentLoaded', function () {
             for (const doc of clase.docus) {
                 const isAccessed = !!docProgress[doc];
                 const docButton = createDocumentButton(
-                    `${getDocumentIcon(doc)} ${formatDocumentName(doc)}`,
-                    () => previewDocument(clase.nombre, doc),
-                    isAccessed
+                    getDocumentIcon(doc),
+                    formatDocumentName(doc),
+                    () => {
+                        previewDocument(clase.nombre, doc);
+                        highlightActiveSidebarItem('document', doc);
+                    },
+                    isAccessed,
+                    formatDocumentName(doc) // Tooltip
                 );
+                docButton.setAttribute('data-resource-type', 'document');
+                docButton.setAttribute('data-resource-id', doc);
                 elements.documentsList.appendChild(docButton);
             }
         }
 
         // Add Campus button if campus_id is available
         if (clase.campus_id) {
-            const campusButton = createDocumentButton('🏫 Ver Campus Virtual', () => openCampusUrl(clase));
-            campusButton.title = `${CONFIG.campusUrl}${clase.campus_id}`;
-            campusButton.style.fontWeight = 'bold';
-            campusButton.style.backgroundColor = '#28a745';
-            campusButton.style.color = 'white';
+            const campusButton = createDocumentButton(
+                '🏫',
+                'Ver Campus Virtual',
+                () => {
+                    openCampusUrl(clase);
+                    highlightActiveSidebarItem('campus', clase.campus_id);
+                },
+                false,
+                '🏫 Campus Virtual' // Tooltip
+            );
+            campusButton.setAttribute('data-resource-type', 'campus');
+            campusButton.setAttribute('data-resource-id', clase.campus_id);
+            campusButton.classList.add('campus-btn');
             elements.documentsList.appendChild(campusButton);
         }
     }
@@ -754,16 +796,43 @@ document.addEventListener('DOMContentLoaded', function () {
         state.currentPlayer = iframeContainer;
     }
 
-    function createDocumentButton(text, onClick, isAccessed = false) {
+    function createDocumentButton(icon, text, onClick, isAccessed = false, tooltip = '') {
         const button = document.createElement('button');
         button.className = 'document-item';
+        button.title = tooltip;
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'item-icon';
+        iconSpan.textContent = icon;
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'item-label';
+        textSpan.textContent = text;
+
+        button.appendChild(iconSpan);
+        button.appendChild(textSpan);
+
         if (isAccessed) {
-            button.innerHTML = `<span>${text}</span> <span style="float:right">✓</span>`;
-        } else {
-            button.textContent = text;
+            const checkSpan = document.createElement('span');
+            checkSpan.className = 'item-check';
+            checkSpan.textContent = '✓';
+            button.appendChild(checkSpan);
         }
+
         button.onclick = onClick;
         return button;
+    }
+
+    function highlightActiveSidebarItem(type, id) {
+        // Remove active class from all items
+        const items = elements.documentsList.querySelectorAll('.document-item');
+        items.forEach(item => item.classList.remove('active'));
+
+        // Add active class to corresponding item
+        const activeItem = elements.documentsList.querySelector(`.document-item[data-resource-type="${type}"][data-resource-id="${id}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
     }
 
     function createNoDocumentsMessage() {
