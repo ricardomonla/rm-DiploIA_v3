@@ -5,8 +5,8 @@
     ".md",
     ".mp4"
   ],
-  "campus_url": "https://cursos.utnba.centrodeelearning.com/course/view.php?id=7700&section=",
-  "youtube_base_url": "https://www.youtube.com/embed/",
+  "url_base_campus": "https://cursos.utnba.centrodeelearning.com/course/view.php?id=7700&section=",
+  "url_base_youtube": "https://www.youtube.com/embed/",
   "clases": [
     "C01_Introducción_a_la_Transformación_Digital",
     "C02_Identificando_Cuellos_de_Botellas_y_Retos",

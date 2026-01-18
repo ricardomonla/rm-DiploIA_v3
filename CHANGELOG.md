@@ -1,5 +1,11 @@
 # Changelog - Clases DiploIA
 
+## [6.5] - 2026-01-17
+### Cambiado
+- Refactorización de claves en `index.json` por consistencia:
+    - `campus_url` -> `url_base_campus`
+    - `youtube_base_url` -> `url_base_youtube`
+
 ## [6.4] - 2026-01-17
 ### Añadido
 - Progreso de video en Sidebar: el porcentaje visto se muestra ahora en el menú lateral.

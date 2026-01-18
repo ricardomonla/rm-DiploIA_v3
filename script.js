@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '6.4',
+        version: '6.5',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -200,8 +200,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             state.docusDir = config.docus_dir;
             CONFIG.allowedExtensions = config.allowed_extensions;
-            CONFIG.campusUrl = config.campus_url || '';
-            CONFIG.youtubeBaseUrl = config.youtube_base_url || 'https://www.youtube.com/embed/';
+            CONFIG.campusUrl = config.url_base_campus || '';
+            CONFIG.youtubeBaseUrl = config.url_base_youtube || 'https://www.youtube.com/embed/';
         } catch (error) {
             console.error('Error loading config:', error);
             showError('Error al cargar la configuración');
