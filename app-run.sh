@@ -25,5 +25,5 @@ if [ -n "$PID" ]; then
     fi
 fi
 
-echo "Starting Python HTTP server on port 8000..."
-python3 -m http.server 8000
+echo "Starting Dynamic DiploIA Server on port 8000..."
+python3 server.py 8000

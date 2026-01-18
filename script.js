@@ -358,6 +358,10 @@ document.addEventListener('DOMContentLoaded', function () {
             saveCurrentProgress();
         }
 
+        // Re-fetch manifest to ensure resources are up-to-date (dynamic sync)
+        await loadDocusConfig();
+        await loadClassesData();
+
         state.selectedClass = selectedClassName;
 
         // Lazy Loading: Check if class data is already loaded
