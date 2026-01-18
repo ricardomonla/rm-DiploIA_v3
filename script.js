@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '6.2',
+        version: '6.3',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -454,8 +454,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!videoId) return;
 
         if (event.data === window.YT.PlayerState.PLAYING) {
+            state.lastPlayerState = window.YT.PlayerState.PLAYING;
             startProgressTracking(videoId);
         } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
+            state.lastPlayerState = event.data;
             saveVideoProgress(videoId);
             if (state.progressInterval) clearInterval(state.progressInterval);
         }
@@ -482,9 +484,24 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 currentTime: currentTime,
                 duration: duration,
-                progress: progress
+                progress: progress,
+                playerState: state.lastPlayerState || window.YT.PlayerState.PAUSED
             }
         );
+
+        updateVideoProgressUI(progress);
+    }
+
+    function updateVideoProgressUI(progress) {
+        let progressDisplay = document.getElementById('video-progress-percentage');
+        if (!progressDisplay) {
+            progressDisplay = document.createElement('div');
+            progressDisplay.id = 'video-progress-percentage';
+            progressDisplay.className = 'video-progress-overlay';
+            elements.youtubePlayer.style.position = 'relative';
+            elements.youtubePlayer.appendChild(progressDisplay);
+        }
+        progressDisplay.textContent = `Visto: ${Math.round(progress)}%`;
     }
 
     function restoreVideoProgress(videoId) {
@@ -497,8 +514,17 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 if (state.youtubePlayer && state.youtubePlayer.seekTo) {
                     state.youtubePlayer.seekTo(videoProgress.currentTime);
+
+                    // Restore Play/Pause state
+                    if (videoProgress.playerState === window.YT.PlayerState.PLAYING) {
+                        state.youtubePlayer.playVideo();
+                    }
                 }
             }, 1000);
+        }
+
+        if (videoProgress && videoProgress.progress) {
+            updateVideoProgressUI(videoProgress.progress);
         }
     }
 

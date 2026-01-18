@@ -1,5 +1,10 @@
 # Changelog - Clases DiploIA
 
+## [6.3] - 2026-01-17
+### Añadido
+- Persistencia del estado de reproducción: el video ahora recuerda si estaba en pausa o "play".
+- Indicador visual de progreso: se muestra el porcentaje de reproducción sobre el video.
+
 ## [6.2] - 2026-01-17
 ### Añadido
 - Arquitectura unificada: Consolidación de `docus.json` e `index.json` en un manifiesto único.
