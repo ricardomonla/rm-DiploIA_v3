@@ -1,5 +1,11 @@
 # Changelog - Clases DiploIA
 
+## [6.4] - 2026-01-17
+### Añadido
+- Progreso de video en Sidebar: el porcentaje visto se muestra ahora en el menú lateral.
+- Sincronización en tiempo real del progreso en la interfaz lateral.
+- Refinamiento de la persistencia de estado Play/Pause.
+
 ## [6.3] - 2026-01-17
 ### Añadido
 - Persistencia del estado de reproducción: el video ahora recuerda si estaba en pausa o "play".

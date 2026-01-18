@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '6.3',
+        version: '6.4',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -490,6 +490,18 @@ document.addEventListener('DOMContentLoaded', function () {
         );
 
         updateVideoProgressUI(progress);
+        updateSidebarVideoProgress(progress);
+    }
+
+    function updateSidebarVideoProgress(progress) {
+        const videoButtons = elements.documentsList.querySelectorAll('.document-item');
+        videoButtons.forEach(btn => {
+            if (btn.textContent.includes('📺 Clase')) {
+                const baseText = btn.getAttribute('data-base-text') || btn.textContent.split(' (')[0];
+                btn.setAttribute('data-base-text', baseText);
+                btn.textContent = `${baseText} (${Math.round(progress)}%)`;
+            }
+        });
     }
 
     function updateVideoProgressUI(progress) {
@@ -518,6 +530,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Restore Play/Pause state
                     if (videoProgress.playerState === window.YT.PlayerState.PLAYING) {
                         state.youtubePlayer.playVideo();
+                    } else {
+                        state.youtubePlayer.pauseVideo();
                     }
                 }
             }, 1000);
@@ -525,6 +539,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (videoProgress && videoProgress.progress) {
             updateVideoProgressUI(videoProgress.progress);
+            updateSidebarVideoProgress(videoProgress.progress);
         }
     }
 
@@ -632,7 +647,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (clase.youtube_id?.trim()) {
-            const youtubeButton = createDocumentButton(`📺 Clase ${clase.class_date}`, () => loadYouTubeVideo(clase));
+            const videoProgress = state.progressTracker.getClassProgress(clase.nombre).resources.video?.[clase.youtube_id] || {};
+            const progressSuffix = videoProgress.progress ? ` (${Math.round(videoProgress.progress)}%)` : '';
+            const youtubeButton = createDocumentButton(`📺 Clase ${clase.class_date}${progressSuffix}`, () => loadYouTubeVideo(clase));
+            youtubeButton.setAttribute('data-base-text', `📺 Clase ${clase.class_date}`);
             elements.documentsList.appendChild(youtubeButton);
         }
 
