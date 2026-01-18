@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function loadDocusConfig() {
         try {
             console.log('Loading unified config from index.json...');
-            const response = await fetch('index.json');
+            const response = await fetch(`index.json?v=${Date.now()}`);
             const config = await response.json();
 
             // Guardar el manifiesto en el estado para reuso
