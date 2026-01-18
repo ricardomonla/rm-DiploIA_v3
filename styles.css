@@ -1,5 +1,6 @@
 /* Cyber-Tech design system inspired by theapexweb.com */
 :root {
+    /* Default Light Mode (Cyber-Tech Soft) */
     --primary-color: #00A3FF;
     /* Vibrant Cyan */
     --secondary-color: #00D1FF;
@@ -8,21 +9,32 @@
     /* Electric Purple */
     --success-color: #00FF85;
     /* Neon Green */
-    --text-color: #FFFFFF;
-    /* Pure White */
-    --text-muted: #A0A0A0;
-    /* Cool Gray */
-    --bg-color: #050505;
-    /* Deep Space Black */
-    --sidebar-bg: rgba(15, 23, 42, 0.7);
-    /* Dark Slate Glass */
-    --card-bg: rgba(30, 41, 59, 0.4);
-    /* Muted Slate Glass */
-    --border-color: rgba(255, 255, 255, 0.1);
-    --neon-border: rgba(0, 163, 255, 0.3);
+    --text-color: #1E293B;
+    /* Dark Slate Text */
+    --text-muted: #64748B;
+    /* Muted Slate */
+    --bg-color: #F8FAFC;
+    /* Very Light Gray/Blue */
+    --sidebar-bg: rgba(255, 255, 255, 0.8);
+    /* Light Glass */
+    --card-bg: rgba(255, 255, 255, 0.5);
+    /* Lighter Glass */
+    --border-color: rgba(0, 0, 0, 0.1);
+    --neon-border: rgba(0, 163, 255, 0.5);
     --transition-speed: 0.3s;
     --border-radius: 20px;
-    /* Softer, more premium geometry */
+    --glow-shadow: 0 4px 15px rgba(0, 163, 255, 0.2);
+}
+
+/* Dark Mode Overrides (Apex "Cyber-Tech" Style) */
+body.dark-mode {
+    --text-color: #FFFFFF;
+    --text-muted: #A0A0A0;
+    --bg-color: #050505;
+    --sidebar-bg: rgba(15, 23, 42, 0.7);
+    --card-bg: rgba(30, 41, 59, 0.4);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --neon-border: rgba(0, 163, 255, 0.3);
     --glow-shadow: 0 0 20px rgba(0, 163, 255, 0.4);
 }
 
@@ -150,32 +162,27 @@ header h1 {
 
 /* Cyber-Tech Dropdown Styling */
 .dropdown {
-    padding: 14px;
-    font-size: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    width: 100%;
+    padding: 12px 15px;
     background-color: var(--sidebar-bg);
     color: var(--text-color);
-    width: 100%;
-    max-width: 500px;
-    transition: all var(--transition-speed);
-    height: auto;
-    min-height: 60px;
-    line-height: 1.4;
-    text-align: left;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
     backdrop-filter: blur(10px);
 }
 
 .dropdown:focus {
-    outline: none;
     border-color: var(--primary-color);
     box-shadow: var(--glow-shadow);
 }
 
 .dropdown option {
-    background-color: #0F172A;
+    background-color: var(--bg-color);
     color: var(--text-color);
-    padding: 12px;
 }
 
 /* Mejora para el selector en el sidebar */
@@ -248,21 +255,19 @@ header h1 {
 }
 
 .sidebar {
-    min-width: 280px;
-    max-width: 400px;
-    width: 25%;
-    background-color: var(--sidebar-bg);
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
     backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-right: 1px solid var(--border-color);
-    padding: 15px;
     height: 100vh;
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    box-sizing: border-box;
     transition: all var(--transition-speed) ease;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    position: relative;
-    z-index: 100;
+    z-index: 1000;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar.collapsed {
@@ -346,22 +351,21 @@ header h1 {
 
 .search-input {
     width: 100%;
-    padding: 14px 18px;
+    background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 999px;
-    /* Pill shape for search */
-    background-color: rgba(15, 23, 42, 0.5);
     color: var(--text-color);
+    padding: 12px 20px;
     box-sizing: border-box;
-    transition: all var(--transition-speed);
-    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
 }
 
 .search-input:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: var(--glow-shadow);
-    background-color: rgba(15, 23, 42, 0.8);
+    background-color: var(--sidebar-bg);
 }
 
 .sidebar h3 {
@@ -378,21 +382,22 @@ header h1 {
 }
 
 .document-item {
-    background-color: var(--card-bg);
-    color: var(--text-color);
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 14px;
+    border-radius: 12px;
+    color: var(--text-color);
+    padding: 12px 16px;
+    margin-bottom: 12px;
     cursor: pointer;
-    transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
-    text-align: left;
-    font-weight: 500;
-    text-decoration: none;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
+    gap: 12px;
     width: 100%;
-    margin-bottom: 8px;
-    backdrop-filter: blur(10px);
+    text-align: left;
+    font-size: 0.95rem;
 }
 
 .document-item:hover {
@@ -564,15 +569,18 @@ main {
 
 /* Class title container */
 .class-title-container {
-    margin-top: 0;
-    margin-bottom: 20px;
-    text-align: center;
-    padding: 20px;
-    background-color: var(--sidebar-bg);
+    background: var(--sidebar-bg);
     backdrop-filter: blur(20px) saturate(180%);
-    border-radius: var(--border-radius);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--neon-border);
+    border-radius: var(--border-radius);
+    padding: 15px 25px;
+    margin-bottom: 25px;
     box-shadow: var(--glow-shadow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0;
 }
 
 .class-title-container h2 {
@@ -687,17 +695,22 @@ main .selector-container {
 }
 
 .markdown-viewer pre {
-    background-color: #0F172A !important;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+    background-color: var(--card-bg) !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--neon-border) !important;
+    overflow-x: auto;
     margin: 20px 0;
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.markdown-viewer code {
+code {
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    background-color: rgba(0, 163, 255, 0.1);
+    font-size: 0.9rem;
+}
+
+:not(pre)>code {
+    background-color: var(--card-bg);
     color: var(--primary-color);
     padding: 2px 6px;
     border-radius: 4px;
