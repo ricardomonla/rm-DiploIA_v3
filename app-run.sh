@@ -14,16 +14,16 @@ if [ -n "$PID" ]; then
         sleep 2
         # Verify the process was killed
         if lsof -t -i :8000 >/dev/null; then
-            echo "Could not kill process $PID, trying port 8001..."
-            python3 -m http.server 8001
+            echo "Could not kill process $PID, falling back to server.py auto-mapping..."
+            python3 server.py 8000
             exit 0
         fi
     else
-        echo "Using port 8001 instead..."
-        python3 -m http.server 8001
+        echo "Letting server.py find an available port..."
+        python3 server.py 8000
         exit 0
     fi
 fi
 
-echo "Starting Dynamic DiploIA Server on port 8000..."
+echo "Starting Dynamic DiploIA Server logic via server.py..."
 python3 server.py 8000

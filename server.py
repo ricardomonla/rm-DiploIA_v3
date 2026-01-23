@@ -2,6 +2,7 @@ import http.server
 import json
 import os
 import sys
+import socket
 from datetime import datetime
 
 class DynamicHandler(http.server.SimpleHTTPRequestHandler):
@@ -93,11 +94,27 @@ class DynamicHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Sync failed: {e}")
 
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
 if __name__ == '__main__':
     port = 8000
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     
+    # Automatic port fallback logic
+    original_port = port
+    while is_port_in_use(port):
+        print(f"Port {port} is already in use.")
+        port += 1
+        if port > original_port + 10: # Try up to 10 ports
+            print("Could not find an available port in range. Exiting.")
+            sys.exit(1)
+            
+    if port != original_port:
+        print(f"Using port {port} instead.")
+
     server_address = ('', port)
     httpd = http.server.HTTPServer(server_address, DynamicHandler)
     print(f"Dynamic DiploIA Server running on port {port}...")

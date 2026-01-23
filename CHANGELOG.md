@@ -1,5 +1,11 @@
 # Changelog - Clases DiploIA
 
+## [7.1] - 2026-01-23
+### Añadido
+- **Unificación de Lanzador**: Refactorización de `app-run.sh` para usar exclusivamente `server.py`, garantizando la ejecución de la lógica de sincronización de `index.json`.
+- **Gestión Robusta de Puertos**: `server.py` ahora detecta puertos en uso y realiza un fallback automático al siguiente puerto disponible.
+- **Integración de Reglas de Agente**: Adopción de `.antigravityrules` para estandarizar la comunicación en español, el formato de memoria y comandos de automatización.
+
 ## [7.0] - 2026-01-23
 ### Añadido
 - **Preparación Clase 16**: Creada estructura para "Definición del proyecto y plan de acción" (29/01/26).
