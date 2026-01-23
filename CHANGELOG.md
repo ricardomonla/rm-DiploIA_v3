@@ -1,5 +1,15 @@
 # Changelog - Clases DiploIA
 
+## [7.2] - 2026-01-23
+### Añadido
+- **Gestión Solo Navegador**: Implementación de API CRUD (POST) en el servidor para permitir la gestión total de contenidos (cursados, clases y recursos) desde la web.
+- **Nueva Jerarquía de Datos**: Reestructuración completa de `index.json` en una jerarquía de **Cursados -> Clases -> Recursos**, soportando múltiples tipos de recursos (Video, Documentos).
+- **Modo Editor & Acciones Rápidas**: 
+    - Panel modal de administración para edición masiva.
+    - Botones de acceso rápido (+) en el sidebar para añadir clases y videos de YouTube instantáneamente.
+- **Estandarización de Directorios**: Migración de todos los recursos a `data/cursados/` para una organización más limpia y profesional.
+- **Optimización de Manifiesto**: Eliminación de datos redundantes y limpieza masiva de `index.json`.
+
 ## [7.1] - 2026-01-23
 ### Añadido
 - **Unificación de Lanzador**: Refactorización de `app-run.sh` para usar exclusivamente `server.py`, garantizando la ejecución de la lógica de sincronización de `index.json`.
