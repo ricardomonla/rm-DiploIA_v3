@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clases DiploIA v6.9</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts: Rajdhani for headers, Inter for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <!-- Apex Background Atmosphere -->
+    <div class="glow-blob blob-1"></div>
+    <div class="glow-blob blob-2"></div>
+    <div class="glow-blob blob-3"></div>
+
+    <div class="container">
+        <div class="sidebar" id="documents-sidebar">
+            <div class="sidebar-header">
+                <h3>Recursos</h3>
+                <button id="sidebar-toggle-btn" class="icon-btn" title="Toggle Sidebar">📖</button>
+            </div>
+
+            <div class="selector-container">
+                <select id="class-selector" class="dropdown">
+                    <option value="">Seleccione una clase</option>
+                </select>
+            </div>
+
+            <div class="search-container">
+                <input type="text" id="class-search" placeholder="🔍 Buscar clase..." class="search-input">
+            </div>
+
+            <div id="documents-list"></div>
+
+            <div class="sidebar-footer">
+                <button id="dark-mode-toggle" class="icon-btn" title="Modo Oscuro">
+                    <i data-lucide="moon"></i>
+                </button>
+                <div class="version-tag">v6.9</div>
+            </div>
+        </div>
+        <main>
+            <div class="class-title-container">
+                <h2 id="selected-class-title">Seleccionar una clase</h2>
+            </div>
+            <div class="video-container">
+                <div id="youtube-player"></div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

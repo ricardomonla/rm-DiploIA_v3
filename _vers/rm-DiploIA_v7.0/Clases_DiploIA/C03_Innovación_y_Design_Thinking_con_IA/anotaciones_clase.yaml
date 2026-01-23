@@ -1,0 +1,20 @@
+course: "DiploIA"
+class_number: 3
+date: "2025-10-30"
+topic: "Innovación y Design Thinking con IA"
+notes:
+  - "Innovación: No solo inventar, sino mejorar procesos existentes. IA democratiza la innovación reduciendo barreras técnicas."
+  - "Ejemplos: Profesor genera quizzes automáticos; empresa optimiza rutas de reparto."
+  - "Design Thinking: Metodología centrada en personas para resolver problemas complejos (empatizar, definir, idear, prototipar, testear)."
+  - "IA acelera Design Thinking: Sintetiza info, genera ideas, arma prototipos, valida hipótesis."
+  - "Caso ejemplo: Atención al cliente - IA analiza conversaciones, detecta patrones, genera insights."
+  - "Fases con IA: Empatizar (análisis masivo), Definir (patrones y preguntas), Idear (brainstorming), Prototipar (flujos), Testear (métricas)."
+  - "Ejercicio práctico: Usar proceso de clase 2 como base."
+  - "Empatizar: Generar preguntas para relevar proceso (frustraciones, mejoras, herramientas, dolores, desperdicios)."
+  - "Definir: Convertir insights en frases '¿Cómo podríamos...?'"
+  - "Idear: Generar 10 ideas con IA, clasificar por Quick Win, herramientas, validación."
+  - "Prototipar: Crear flujos paso a paso con herramientas sugeridas."
+  - "Cierre: Reflexión sobre proceso, perspectivas sumadas, ideas a avanzar."
+resources:
+  - "Prompts sugeridos en PDF para cada fase"
+additional_notes: "Conectar con proceso mapeado en clase 2. Próxima clase: Fundamentos de IA y plataformas No-Code."

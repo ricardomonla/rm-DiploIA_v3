@@ -185,6 +185,138 @@ header h1 {
     color: var(--text-color);
 }
 
+/* Management Modal & Editor Styles */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--sidebar-bg);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--neon-border);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 50px rgba(0, 163, 255, 0.3);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+/* Editor Specific Elements */
+.editor-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.editor-field {
+    margin-bottom: 15px;
+}
+
+.editor-field label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.editor-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    color: var(--text-color);
+    font-family: inherit;
+}
+
+.editor-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.primary-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.primary-btn:hover {
+    box-shadow: 0 0 15px var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.action-btn {
+    background: transparent;
+    color: var(--primary-color);
+    border: 1px dashed var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    background: rgba(0, 163, 255, 0.1);
+}
+
+.clase-editor-item {
+    margin-left: 20px;
+    border-left: 2px solid var(--primary-color);
+    padding-left: 15px;
+    margin-top: 15px;
+}
+
+.remove-btn {
+    color: #ff4d4d;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
 /* Mejora para el selector en el sidebar */
 .sidebar .dropdown {
     width: 100%;
@@ -615,8 +747,36 @@ main {
 }
 
 .sidebar .dropdown {
-    width: 100%;
+    flex: 1;
     max-width: none;
+}
+
+.selector-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.small-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    min-width: 32px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+}
+
+.tiny-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    margin-right: 5px;
+}
+
+.sidebar-actions {
+    padding: 0 10px 10px 10px;
+    display: flex;
+    gap: 10px;
 }
 
 /* Alinear selector y contenedor de selectores a la misma altura superior */

@@ -1,0 +1,18 @@
+course: "DiploIA"
+class_number: 2
+date: "2025-10-30"
+topic: "Identificando cuellos de botellas y retos"
+notes:
+  - "Mapear procesos antes de usar IA: Modelos no mejoran lo que no entendemos; cuellos de botella escondidos en tareas diarias."
+  - "Proceso: Secuencia de pasos con objetivo; Entrada → Acción → Salida. Preguntas: objetivo, pasos clave, quién ejecuta, herramientas."
+  - "Escalabilidad: ¿Se mantiene eficiente si volumen aumenta 10x? ¿Depende de una persona? ¿Se repite? ¿Puede sistematizarse?"
+  - "Tareas clave: Repetitivas, lentas, costosas (tiempo/dinero/errores), basadas en reglas claras (ideales para IA/No-Code), difusas/subjetivas."
+  - "Matriz Impacto vs Esfuerzo: Visual para decidir mejoras. Quick Wins: alto impacto/bajo esfuerzo."
+  - "Quick Wins: Cambios simples, resultados rápidos, generan confianza, demuestran valor."
+  - "Automatización No-Code: Tareas con reglas claras, repetitivas, usan herramientas conocidas, integraciones disponibles."
+  - "Necesita desarrollo: Lógica compleja, sistemas cerrados sin API, control infraestructura/seguridad."
+  - "Ejercicio práctico: Mapear proceso real, analizar con IA, crear tabla con pasos, herramientas, tipo tarea, automatización, prioridad, acción."
+  - "Pasos ejercicio: 1. Mapear proceso (prompt para estructurar), 2. Identificar oportunidades (etiquetar tareas), 3. Priorizar (clasificar Quick Wins)."
+resources:
+  - "Prompts sugeridos en PDF para cada paso del ejercicio"
+additional_notes: "Entregable: Tabla con proceso paso a paso, herramientas, tipo automatización, prioridad, acción sugerida. Próxima clase: Innovación y Design Thinking con IA."

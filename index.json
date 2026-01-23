@@ -1,5 +1,5 @@
 {
-  "docus_dir": "Clases_DiploIA/",
+  "docus_dir": "data/cursados/",
   "allowed_extensions": [
     ".pdf",
     ".md",
@@ -7,268 +7,567 @@
   ],
   "url_base_campus": "https://cursos.utnba.centrodeelearning.com/course/view.php?id=7700&section=",
   "url_base_youtube": "https://www.youtube.com/embed/",
-  "clases": [
+  "cursados": [
     {
-      "folder": "C01_Introducción_a_la_Transformación_Digital",
-      "youtube_id": "4il7Li-a684",
-      "campus_id": "4",
-      "class_number": "1",
-      "class_name": "Introducción a la Transformación Digital",
-      "class_date": "02/10/2025",
-      "docus": [
-        "C0100 - Conceptos_Claves.md",
-        "C0101 - Diapositivas_de_Clase_2025-10-02.pdf",
-        "C0102 - Material de lectura - Clase 1.pdf",
-        "C0103 - Prompts genéricos - IA para no programadores.pdf",
-        "C0104 - Material de lectura clase 1.pdf"
-      ]
-    },
-    {
-      "folder": "C02_Identificando_cuellos_de_botella_y_retos",
-      "youtube_id": "NgFip6vsdd0",
-      "campus_id": "5",
-      "class_number": "2",
-      "class_name": "Identificando cuellos de botella y retos",
-      "class_date": "09/10/2025",
-      "docus": [
-        "C0200 - Conceptos_Claves.md",
-        "C0201 - Diapositivas_de_Clase.pdf",
-        "C0202 - Material de lectura - Clase 2.pdf"
-      ]
-    },
-    {
-      "folder": "C03_Innovación_y_Design_Thinking_con_IA",
-      "youtube_id": "IqfPBCuBV-0",
-      "campus_id": "6",
-      "class_number": "3",
-      "class_name": "Innovación y Design Thinking con IA",
-      "class_date": "16/10/2025",
-      "docus": [
-        "C0300 - Conceptos_Claves.md",
-        "C0301 - Diapositivas_de_Clase 3.pdf",
-        "C0302 - Material de lectura.pdf"
-      ]
-    },
-    {
-      "folder": "C04_Fundamentos_de_IA_y_Plataforma_No_Code",
-      "youtube_id": "hsR7n3q9Ii0",
-      "campus_id": "7",
-      "class_number": "4",
-      "class_name": "Fundamentos de IA y plataforma No Code",
-      "class_date": "23/10/2025",
-      "docus": [
-        "C0400 - Conceptos_Claves.md",
-        "C0401 - Diapositivas.pdf",
-        "C0402 - Notas Clase 4.md",
-        "C0403 - Material de lectura.pdf",
-        "C0404 - Página para buscar herramientas específicas de IA.pdf",
-        "C0405 - Tutorial - Crear cuenta en Make.mp4"
-      ]
-    },
-    {
-      "folder": "C05_Herramientas_No_Code_Productividad",
-      "youtube_id": "Z9OWVJmVQKA",
-      "campus_id": "8",
-      "class_number": "5",
-      "class_name": "Herramientas No Code para la productividad",
-      "class_date": "30/10/2025",
-      "docus": [
-        "C0500 - Conceptos_Claves.md",
-        "C0501 - Diapositivas.pdf",
-        "C0502 - Material de lectura.pdf",
-        "C0503 - Tutorial conectar servicios de Google en Make.md",
-        "C0504 - Make Docs - Conectar Drive.md",
-        "C0505 - Checklist + URL - Conexión Make con ss Google.pdf",
-        "C0506 - Tutorial - Conexión Gmail - Make.pdf"
-      ]
-    },
-    {
-      "folder": "C06_IA_Para_Generar_Código_Sin_Conocimiento_Previo_I",
-      "youtube_id": "lKgJHYevhMY",
-      "campus_id": "14",
-      "class_number": "6",
-      "class_name": "IA para generar código sin conocimiento previo I",
-      "class_date": "06/11/2025",
-      "docus": [
-        "C0600 - Conceptos_Claves.md",
-        "C0601 - Diapositivas.pdf",
-        "C0602 - Material de Lectura.pdf",
-        "C0603 - Material de Lectura.pdf"
-      ]
-    },
-    {
-      "folder": "C07_IA_Para_Generar_Código_Sin_Conocimiento_Previo_II",
-      "youtube_id": "oMoqC1ijZjc",
-      "campus_id": "10",
-      "class_number": "7",
-      "class_name": "IA para generar código sin conocimiento previo II",
-      "class_date": "13/11/2025",
-      "docus": [
-        "C0700 - Conceptos_Claves.md",
-        "C0701 - Diapositivas.pdf",
-        "C0702 - Material de Lectura.pdf",
-        "C0703 - Material de Lectura.pdf",
-        "C0704 - Checklist Zoom.pdf"
-      ]
-    },
-    {
-      "folder": "C08_Automatización_de_Tareas_I",
-      "youtube_id": "Q3ngZNkf63k",
-      "campus_id": "11",
-      "class_number": "8",
-      "class_name": "Automatización de tareas I",
-      "class_date": "20/11/2025",
-      "docus": [
-        "C0800 - Conceptos_Claves.md",
-        "C0801 - Diapositivas.pdf",
-        "C0802 - Material de Lectura.pdf",
-        "C0803 - Material de Lectura.pdf",
-        "C0804 - Pre Prompt.pdf",
-        "C0805 - Formulario Demo Blueprint.JSON.md",
-        "C0806 - Tutorial para cargar Escenarios en Make.pdf",
-        "C0807 - Consigna para clase 9.pdf",
-        "C0808 - DIPLO -Consigna Actividad práctica preliminar.pdf",
-        "C0809 - Actualización de Make.pdf"
-      ]
-    },
-    {
-      "folder": "C09_Automatización_de_Tareas_II",
-      "youtube_id": "SHDLNNYjV98",
-      "campus_id": "12",
-      "class_number": "9",
-      "class_name": "Automatización de tareas II",
-      "class_date": "27/11/2025",
-      "docus": [
-        "C0900 - Conceptos_Claves.md",
-        "C0901 - Diapositivas.pdf",
-        "C0902 - Material de Lectura.pdf",
-        "C0903 - Material de Lectura.pdf",
-        "C0904 - Automatización de clase - Router + Gestión de errores.Blueprint.md"
-      ]
-    },
-    {
-      "folder": "C10_Creación_de_Herramientas_Internas_y_Paneles_I",
-      "youtube_id": "C1ec8_8Ifwk",
-      "campus_id": "13",
-      "class_number": "10",
-      "class_name": "Creación de herramientas internas y paneles I",
-      "class_date": "04/12/2025",
-      "docus": [
-        "C1000 - Conceptos_Claves.md",
-        "C1001 - Diapositivas.pdf",
-        "C1002 - Material de Lectura.pdf",
-        "C1003 - Material de Lectura.pdf",
-        "C1004 - Ejemplo Dashboard.pdf"
-      ]
-    },
-    {
-      "folder": "C10e_Clase Extra - Entornos",
-      "youtube_id": "XZ5fFs1si34",
-      "campus_id": "13",
-      "class_number": "10",
-      "class_name": "Clase Extra - Entornos",
-      "class_date": "10/12/2025",
-      "docus": [
-        "C10e00 Conceptos_Claves.md",
-        "C10e01 Diapositivas_de_Clase_2025-12-10.pdf"
-      ]
-    },
-    {
-      "folder": "C11_Creación_de_Herramientas_Internas_y_Paneles_II",
-      "youtube_id": "EIuhyuP3t3k",
-      "campus_id": "14",
-      "class_number": "11",
-      "class_name": "Creación de herramientas internas y paneles II",
-      "class_date": "11/12/2025",
-      "docus": [
-        "C1100 - Conceptos_Claves.md",
-        "C1101 - Diapositivas_de_Clase_2025-12-10.pdf"
-      ]
-    },
-    {
-      "folder": "C12_Integración_de_IA_en_Aplicaciones_No_Code",
-      "youtube_id": "IqxmMo1stLg",
-      "campus_id": "15",
-      "class_number": "12",
-      "class_name": "Integración de IA en Aplicaciones No Code",
-      "class_date": "18/12/2025",
-      "docus": [
-        "C12 - Conceptos_Claves.md",
-        "C12D00 - Diapositivas_de_Clase_2025-12-11.pdf"
-      ]
-    },
-    {
-      "folder": "C13_Creación_de_Asistentes_Virtuales",
-      "youtube_id": "pLHGG3Yn-58",
-      "campus_id": "16",
-      "class_number": "13",
-      "class_name": "Creación de Asistentes Virtuales",
-      "class_date": "08/01/2026",
-      "docus": [
-        "C13D00 - Presentación 08-01-26.pdf",
-        "C13D01 - Material de lectura.pdf",
-        "C13D02 - Material de lectura.pdf",
-        "C13D03 - Mi Asistente TIC.md",
-        "C13D04 - Enlaces.md"
-      ]
-    },
-    {
-      "folder": "C14_Diseño_de_encuestas_y_análisis_de_datos",
-      "youtube_id": "YuVXQD9ofeU",
-      "campus_id": "17",
-      "class_number": "14",
-      "class_name": "Diseño de encuestas y análisis de datos",
-      "class_date": "15/01/2026",
-      "docus": [
-        "C1400 - Conceptos_Claves.md",
-        "C14D00 - IA para No Programadores.pdf",
-        "C14D01 - Documentación Complementaria.pdf",
-        "C14D02 - Material de lectura.pdf"
-      ]
-    },
-    {
-      "folder": "C15_Mantenimiento_y_escalabilidad",
-      "youtube_id": "fzgRPzImNgI",
-      "campus_id": "18",
-      "class_number": "15",
-      "class_name": "Mantenimiento y escalabilidad",
-      "class_date": "22/01/2026",
-      "docus": [
-        "C1500 - Resumen Clase.md",
-        "C1501 - Diapositivas.pdf",
-        "C1502 - Material de Lectura.pdf",
-        "C1503 - Notas.md",
-        "C1505 - Video Clase 15.mp4"
-      ]
-    },
-    {
-      "folder": "C16_Definición_del_proyecto_y_plan_de_acción",
-      "youtube_id": "",
-      "campus_id": "",
-      "class_number": "16",
-      "class_name": "Definición del proyecto y plan de acción",
-      "class_date": "29/01/2026",
-      "docus": [
-        "C1600 - Conceptos_Claves.md",
-        "C1601 - Notas.md"
-      ]
-    },
-    {
-      "folder": "C17_Trabajo_Integrador_Final",
-      "youtube_id": "",
-      "campus_id": "",
-      "class_number": "17",
-      "class_name": "Trabajo Integrador Final",
-      "class_date": "29/01/2026",
-      "docus": [
-        "260104 - Consigna Trabajo Práctico Final.pdf",
-        "260116 - Ideas para mejoras.md",
-        "260117-0812 **> TPFI dtic-GEMA.md",
-        "260117-0823 **> Resumen Ejecutivo.md",
-        "260117-0829 **> Preguntas Frecuentes (FAQ).md",
-        "260117-0841 **> Enlaces.md",
-        "260117-0858 **> Inicio de Puesta en Marcha.md"
+      "nombre": "Inteligencia Artificial para No Programadores",
+      "nivel": "Diplomatura",
+      "clases": [
+        {
+          "nombre": "Introducción a la Transformación Digital",
+          "fecha": "02/10/2025",
+          "class_number": "1",
+          "folder": "C01_Introducción_a_la_Transformación_Digital",
+          "campus_id": "4",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "4il7Li-a684"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0100 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0101 - Diapositivas_de_Clase_2025-10-02.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0102 - Material de lectura - Clase 1.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0103 - Prompts genéricos - IA para no programadores.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0104 - Material de lectura clase 1.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Identificando cuellos de botella y retos",
+          "fecha": "09/10/2025",
+          "class_number": "2",
+          "folder": "C02_Identificando_cuellos_de_botella_y_retos",
+          "campus_id": "5",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "NgFip6vsdd0"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0200 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0201 - Diapositivas_de_Clase.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0202 - Material de lectura - Clase 2.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Innovación y Design Thinking con IA",
+          "fecha": "16/10/2025",
+          "class_number": "3",
+          "folder": "C03_Innovación_y_Design_Thinking_con_IA",
+          "campus_id": "6",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "IqfPBCuBV-0"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0300 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0301 - Diapositivas_de_Clase 3.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0302 - Material de lectura.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Fundamentos de IA y plataforma No Code",
+          "fecha": "23/10/2025",
+          "class_number": "4",
+          "folder": "C04_Fundamentos_de_IA_y_Plataforma_No_Code",
+          "campus_id": "7",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "hsR7n3q9Ii0"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0400 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0401 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0402 - Notas Clase 4.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0403 - Material de lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0404 - Página para buscar herramientas específicas de IA.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0405 - Tutorial - Crear cuenta en Make.mp4"
+            }
+          ]
+        },
+        {
+          "nombre": "Herramientas No Code para la productividad",
+          "fecha": "30/10/2025",
+          "class_number": "5",
+          "folder": "C05_Herramientas_No_Code_Productividad",
+          "campus_id": "8",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "Z9OWVJmVQKA"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0500 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0501 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0502 - Material de lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0503 - Tutorial conectar servicios de Google en Make.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0504 - Make Docs - Conectar Drive.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0505 - Checklist + URL - Conexión Make con ss Google.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0506 - Tutorial - Conexión Gmail - Make.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "IA para generar código sin conocimiento previo I",
+          "fecha": "06/11/2025",
+          "class_number": "6",
+          "folder": "C06_IA_Para_Generar_Código_Sin_Conocimiento_Previo_I",
+          "campus_id": "14",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "lKgJHYevhMY"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0600 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0601 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0602 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0603 - Material de Lectura.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "IA para generar código sin conocimiento previo II",
+          "fecha": "13/11/2025",
+          "class_number": "7",
+          "folder": "C07_IA_Para_Generar_Código_Sin_Conocimiento_Previo_II",
+          "campus_id": "10",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "oMoqC1ijZjc"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0700 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0701 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0702 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0703 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0704 - Checklist Zoom.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Automatización de tareas I",
+          "fecha": "20/11/2025",
+          "class_number": "8",
+          "folder": "C08_Automatización_de_Tareas_I",
+          "campus_id": "11",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "Q3ngZNkf63k"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0800 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0801 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0802 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0803 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0804 - Pre Prompt.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0805 - Formulario Demo Blueprint.JSON.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0806 - Tutorial para cargar Escenarios en Make.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0807 - Consigna para clase 9.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0808 - DIPLO -Consigna Actividad práctica preliminar.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0809 - Actualización de Make.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Automatización de tareas II",
+          "fecha": "27/11/2025",
+          "class_number": "9",
+          "folder": "C09_Automatización_de_Tareas_II",
+          "campus_id": "12",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "SHDLNNYjV98"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0900 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0901 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0902 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0903 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C0904 - Automatización de clase - Router + Gestión de errores.Blueprint.md"
+            }
+          ]
+        },
+        {
+          "nombre": "Creación de herramientas internas y paneles I",
+          "fecha": "04/12/2025",
+          "class_number": "10",
+          "folder": "C10_Creación_de_Herramientas_Internas_y_Paneles_I",
+          "campus_id": "13",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "C1ec8_8Ifwk"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1000 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1001 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1002 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1003 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1004 - Ejemplo Dashboard.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Clase Extra - Entornos",
+          "fecha": "10/12/2025",
+          "class_number": "10",
+          "folder": "C10e_Clase Extra - Entornos",
+          "campus_id": "13",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "XZ5fFs1si34"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C10e00 Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C10e01 Diapositivas_de_Clase_2025-12-10.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Creación de herramientas internas y paneles II",
+          "fecha": "11/12/2025",
+          "class_number": "11",
+          "folder": "C11_Creación_de_Herramientas_Internas_y_Paneles_II",
+          "campus_id": "14",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "EIuhyuP3t3k"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1100 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1101 - Diapositivas_de_Clase_2025-12-10.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Integración de IA en Aplicaciones No Code",
+          "fecha": "18/12/2025",
+          "class_number": "12",
+          "folder": "C12_Integración_de_IA_en_Aplicaciones_No_Code",
+          "campus_id": "15",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "IqxmMo1stLg"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C12 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C12D00 - Diapositivas_de_Clase_2025-12-11.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Creación de Asistentes Virtuales",
+          "fecha": "08/01/2026",
+          "class_number": "13",
+          "folder": "C13_Creación_de_Asistentes_Virtuales",
+          "campus_id": "16",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "pLHGG3Yn-58"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C13D00 - Presentación 08-01-26.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C13D01 - Material de lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C13D02 - Material de lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C13D03 - Mi Asistente TIC.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C13D04 - Enlaces.md"
+            }
+          ]
+        },
+        {
+          "nombre": "Diseño de encuestas y análisis de datos",
+          "fecha": "15/01/2026",
+          "class_number": "14",
+          "folder": "C14_Diseño_de_encuestas_y_análisis_de_datos",
+          "campus_id": "17",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "YuVXQD9ofeU"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1400 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C14D00 - IA para No Programadores.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C14D01 - Documentación Complementaria.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C14D02 - Material de lectura.pdf"
+            }
+          ]
+        },
+        {
+          "nombre": "Mantenimiento y escalabilidad",
+          "fecha": "22/01/2026",
+          "class_number": "15",
+          "folder": "C15_Mantenimiento_y_escalabilidad",
+          "campus_id": "18",
+          "recursos": [
+            {
+              "tipo": "Video_YouTube",
+              "id_ytb": "fzgRPzImNgI"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1500 - Resumen Clase.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1501 - Diapositivas.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1502 - Material de Lectura.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1503 - Notas.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1505 - Video Clase 15.mp4"
+            }
+          ]
+        },
+        {
+          "nombre": "Definición del proyecto y plan de acción",
+          "fecha": "29/01/2026",
+          "class_number": "16",
+          "folder": "C16_Definición_del_proyecto_y_plan_de_acción",
+          "campus_id": "",
+          "recursos": [
+            {
+              "tipo": "Documento",
+              "archivo": "C1600 - Conceptos_Claves.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "C1601 - Notas.md"
+            }
+          ]
+        },
+        {
+          "nombre": "Trabajo Integrador Final",
+          "fecha": "29/01/2026",
+          "class_number": "17",
+          "folder": "C17_Trabajo_Integrador_Final",
+          "campus_id": "",
+          "recursos": [
+            {
+              "tipo": "Documento",
+              "archivo": "260104 - Consigna Trabajo Práctico Final.pdf"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "260116 - Ideas para mejoras.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "260117-0812 **> TPFI dtic-GEMA.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "260117-0823 **> Resumen Ejecutivo.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "260117-0829 **> Preguntas Frecuentes (FAQ).md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "260117-0841 **> Enlaces.md"
+            },
+            {
+              "tipo": "Documento",
+              "archivo": "260117-0858 **> Inicio de Puesta en Marcha.md"
+            }
+          ]
+        }
       ]
     }
+  ],
   ]
 }

@@ -1,0 +1,20 @@
+course: "DiploIA"
+class_number: 1
+date: "2025-10-30"
+topic: "Introducción a la Transformación Digital"
+notes:
+  - "Objetivos: Comprender transformación digital y rol IA; usar IA para auto-aprender; ejercicios prácticos mapeo y exploración."
+  - "Agenda: Contexto transformación digital vs rediseño procesos; IA como compañera aprendizaje; 3 ejercicios prácticos; cierre."
+  - "Conceptos clave: Digitalizar tareas (manual a digital sin cambiar lógica); rediseñar negocio (crear nuevos valores); IA como palanca (agiliza, personaliza, automatiza)."
+  - "IA para aprender IA: Asistentes conversacionales como tutores; ventajas ritmo propio, ejemplos aplicados, feedback inmediato."
+  - "Ejercicio 1: Mapa uso IA - Dibujar workflow actual (herramientas, frecuencia, puntos dolor); prompt ejemplo para explorar oportunidades."
+  - "Ejercicio 2: Usar IA para aprender IA - Elegir herramienta, prompt para guía uso paso a paso con ejemplos y errores evitar."
+  - "Ejercicio 3: Mapeo proceso sencillo - Seleccionar proceso breve, prompt para mapear pasos y proponer soluciones IA."
+  - "Integración ejercicios: Personal a organizacional; consolida confianza en herramienta."
+  - "Guía uso herramientas IA: Estructurar prompts (claridad + contexto + objetivo); pedir pasos detallados; validar costos/licencias."
+  - "Mapeo procesos: Definición proceso (pasos secuenciales); cuellos botella (lentitud, repetitivas, errores); IA como analista (patrones, optimizaciones)."
+  - "Cierre: Recapitulación; tarea elegir proceso complejo y documentar; experimentar con prompts."
+resources:
+  - "Prompts sugeridos en PDF para cada ejercicio"
+  - "Actividad semana: Analizar proceso con cuello botella usando prompt propuesto"
+additional_notes: "Normas convivencia: 50% teoría/50% práctica; dudas por Zoom/chat. Próxima clase: Identificando cuellos de botellas y retos."

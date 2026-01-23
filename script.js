@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // === STATE MANAGEMENT ===
     const state = {
-        classesData: { clases: [] },
+        classesData: { cursados: [] },
         currentPlayer: null,
         selectedClass: null,
         docusDir: '',
@@ -110,7 +110,16 @@ document.addEventListener('DOMContentLoaded', function () {
         classSearch: document.getElementById('class-search'),
         darkModeToggle: document.getElementById('dark-mode-toggle'),
         sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
-        sidebar: document.getElementById('documents-sidebar')
+        sidebar: document.getElementById('documents-sidebar'),
+        adminToggle: document.getElementById('admin-toggle'),
+        adminModal: document.getElementById('admin-modal'),
+        closeModal: document.getElementById('close-modal'),
+        cursadosEditorList: document.getElementById('cursados-editor-list'),
+        addCursadoBtn: document.getElementById('add-cursado-btn'),
+        saveAllBtn: document.getElementById('save-all-btn'),
+        quickAddClass: document.getElementById('quick-add-class'),
+        sidebarResourceActions: document.getElementById('sidebar-resource-actions'),
+        quickAddYoutube: document.getElementById('quick-add-youtube')
     };
 
     // === INITIALIZATION ===
@@ -151,6 +160,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Sidebar Toggle
         elements.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+
+        // Admin/Management
+        elements.adminToggle.addEventListener('click', openAdminModal);
+        elements.closeModal.addEventListener('click', () => elements.adminModal.style.display = 'none');
+        elements.addCursadoBtn.addEventListener('click', addCursadoToEditor);
+        elements.saveAllBtn.addEventListener('click', saveChanges);
+
+        // Quick Actions
+        elements.quickAddClass.addEventListener('click', handleQuickAddClass);
+        elements.quickAddYoutube.addEventListener('click', handleQuickAddYoutube);
 
         // Add window unload event to save progress
         window.addEventListener('beforeunload', saveCurrentProgress);
@@ -217,16 +236,17 @@ document.addEventListener('DOMContentLoaded', function () {
     async function loadClassesData() {
         try {
             const manifest = state.manifest;
-            if (!manifest || !manifest.clases) throw new Error('Manifest not loaded');
+            if (!manifest || !manifest.cursados) throw new Error('Manifest or cursados not loaded');
 
-            // All data is already in the manifest (v6.6)
-            state.classesData.clases = manifest.clases.map(clase => ({
-                ...clase,
-                nombre: clase.folder, // Keep internal 'nombre' as folder name for compatibility
-                isLoaded: true
+            state.classesData.cursados = manifest.cursados.map(cursado => ({
+                ...cursado,
+                clases: cursado.clases.map(clase => ({
+                    ...clase,
+                    isLoaded: true
+                }))
             }));
 
-            console.log('Classes metadata fully integrated:', state.classesData.clases.length, 'classes');
+            console.log('Courses fully integrated:', state.classesData.cursados.length);
 
         } catch (error) {
             console.error('Error integrating metadata:', error);
@@ -295,33 +315,46 @@ document.addEventListener('DOMContentLoaded', function () {
     function populateDropdown() {
         elements.classSelector.innerHTML = '<option value="">Seleccione una clase</option>';
 
-        if (state.classesData.clases?.length > 0) {
-            for (const clase of state.classesData.clases) {
+        state.classesData.cursados.forEach(cursado => {
+            const group = document.createElement('optgroup');
+            group.label = `${cursado.nombre} (${cursado.nivel})`;
+
+            cursado.clases.forEach(clase => {
                 const option = createClassOption(clase);
-                elements.classSelector.appendChild(option);
-            }
-        }
+                group.appendChild(option);
+            });
+
+            elements.classSelector.appendChild(group);
+        });
+    }
+
+    function getAllClasses() {
+        let all = [];
+        state.classesData.cursados.forEach(curs => {
+            all = all.concat(curs.clases);
+        });
+        return all;
     }
 
     function createClassOption(clase) {
         const option = document.createElement('option');
-        option.value = clase.nombre;
+        option.value = clase.folder;
         option.textContent = formatClassName(clase);
         return option;
     }
 
     function formatClassName(clase) {
-        let name = clase.nombre.replace('C', 'Clase ').replace(/_/g, ' ');
-        if (clase.class_number && clase.class_name) {
+        let name = clase.nombre;
+        if (clase.class_number) {
             const classNum = String(clase.class_number).padStart(2, '0');
-            name = `C${classNum} - ${clase.class_name}`;
+            name = `C${classNum} - ${clase.nombre}`;
         }
 
-        // Show completion marker (modern)
-        const progress = state.progressTracker.getClassProgress(clase.nombre);
+        // Show completion marker
+        const progress = state.progressTracker.getClassProgress(clase.folder);
         const videoRes = Object.values(progress.resources.video || {})[0];
         if (videoRes && videoRes.progress > 90) {
-            name = '✨ ' + name; // Using a subtle spark instead of green check
+            name = '✨ ' + name;
         }
 
         return name;
@@ -335,11 +368,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function autoSelectClass() {
         const savedClass = localStorage.getItem('selectedClass');
+        const allClasses = getAllClasses();
         if (savedClass) {
             elements.classSelector.value = savedClass;
             await handleClassSelection();
-        } else if (state.classesData.clases?.[0]) {
-            elements.classSelector.value = state.classesData.clases[0].nombre;
+        } else if (allClasses[0]) {
+            elements.classSelector.value = allClasses[0].folder;
             await handleClassSelection();
         }
     }
@@ -350,8 +384,11 @@ document.addEventListener('DOMContentLoaded', function () {
             clearPlayer();
             clearDocuments();
             updateClassTitle('Seleccionar una clase');
+            elements.sidebarResourceActions.style.display = 'none';
             return;
         }
+
+        elements.sidebarResourceActions.style.display = 'flex';
 
         // Save progress for previous class before switching
         if (state.selectedClass && state.selectedClass !== selectedClassName) {
@@ -364,12 +401,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         state.selectedClass = selectedClassName;
 
-        // Lazy Loading: Check if class data is already loaded
-        let selectedClass = state.classesData.clases.find(clase => clase.nombre === selectedClassName);
+        const allClasses = getAllClasses();
+        let selectedClass = allClasses.find(clase => clase.folder === selectedClassName);
 
         if (selectedClass && !selectedClass.isLoaded) {
             console.log(`Lazy loading data for ${selectedClassName}...`);
-            selectedClass = await reloadClassData(selectedClassName);
+            // selectedClass = await reloadClassData(selectedClassName);
             selectedClass.isLoaded = true;
         }
 
@@ -377,10 +414,11 @@ document.addEventListener('DOMContentLoaded', function () {
             updateClassTitle(formatClassName(selectedClass));
             displayDocuments(selectedClass);
 
-            // Auto-select video if available
-            if (selectedClass.youtube_id?.trim()) {
-                loadYouTubeVideo(selectedClass);
-                highlightActiveSidebarItem('video', selectedClass.youtube_id);
+            // Auto-select first video if available
+            const firstVideo = selectedClass.recursos?.find(r => r.tipo === 'Video_YouTube');
+            if (firstVideo?.id_ytb) {
+                loadYouTubeVideo(selectedClass, firstVideo.id_ytb);
+                highlightActiveSidebarItem('video', firstVideo.id_ytb);
             }
 
             // Restore progress for this class
@@ -391,19 +429,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // === PLAYER MANAGEMENT ===
-    function loadYouTubeVideo(clase) {
+    function loadYouTubeVideo(clase, videoId) {
         clearPlayer();
 
-        if (!clase.youtube_id || !clase.youtube_id.trim()) {
+        const id = videoId || clase.recursos?.find(r => r.tipo === 'Video_YouTube')?.id_ytb;
+        if (!id) {
             return;
         }
 
-        const iframe = createYouTubeIframe(clase.youtube_id);
+        const iframe = createYouTubeIframe(id);
         elements.youtubePlayer.appendChild(iframe);
         state.currentPlayer = iframe;
 
         // Initialize YouTube API for progress tracking
-        initializeYouTubeAPI(clase.youtube_id);
+        initializeYouTubeAPI(id);
     }
 
     // YouTube API functions reactivated for progress tracking
@@ -645,45 +684,45 @@ document.addEventListener('DOMContentLoaded', function () {
     function displayDocuments(clase) {
         clearDocuments();
 
-        if (!clase.docus?.length) {
+        if (!clase.recursos?.length) {
             const noDocs = createNoDocumentsMessage();
             elements.documentsList.appendChild(noDocs);
         }
 
-        if (clase.youtube_id?.trim()) {
-            const videoProgress = state.progressTracker.getClassProgress(clase.nombre).resources.video?.[clase.youtube_id] || {};
-            const progressSuffix = videoProgress.progress ? ` (${Math.round(videoProgress.progress)}%)` : '';
-            const youtubeButton = createDocumentButton(
-                'youtube',
-                `Clase ${clase.class_date}${progressSuffix}`,
-                () => {
-                    loadYouTubeVideo(clase);
-                    highlightActiveSidebarItem('video', clase.youtube_id);
-                },
-                false,
-                `🎥 Clase ${clase.class_date}` // Tooltip
-            );
-            youtubeButton.setAttribute('data-resource-type', 'video');
-            youtubeButton.setAttribute('data-resource-id', clase.youtube_id);
-            elements.documentsList.appendChild(youtubeButton);
-        }
+        const classProgress = state.progressTracker.getClassProgress(clase.folder);
 
-        if (clase.docus?.length > 0) {
-            const docProgress = state.progressTracker.getClassProgress(clase.nombre).resources.document || {};
-            for (const doc of clase.docus) {
-                const isAccessed = !!docProgress[doc];
-                const docButton = createDocumentButton(
-                    getDocumentIcon(doc),
-                    formatDocumentName(doc),
+        for (const recurso of (clase.recursos || [])) {
+            if (recurso.tipo === 'Video_YouTube') {
+                const videoProgress = classProgress.resources.video?.[recurso.id_ytb] || {};
+                const progressSuffix = videoProgress.progress ? ` (${Math.round(videoProgress.progress)}%)` : '';
+                const youtubeButton = createDocumentButton(
+                    'youtube',
+                    `Clase ${clase.fecha}${progressSuffix}`,
                     () => {
-                        previewDocument(clase.nombre, doc);
-                        highlightActiveSidebarItem('document', doc);
+                        loadYouTubeVideo(clase, recurso.id_ytb);
+                        highlightActiveSidebarItem('video', recurso.id_ytb);
+                    },
+                    false,
+                    `🎥 Clase ${clase.fecha}`
+                );
+                youtubeButton.setAttribute('data-resource-type', 'video');
+                youtubeButton.setAttribute('data-resource-id', recurso.id_ytb);
+                elements.documentsList.appendChild(youtubeButton);
+            } else if (recurso.tipo === 'Documento') {
+                const docProgress = classProgress.resources.document || {};
+                const isAccessed = !!docProgress[recurso.archivo];
+                const docButton = createDocumentButton(
+                    getDocumentIcon(recurso.archivo),
+                    formatDocumentName(recurso.archivo),
+                    () => {
+                        previewDocument(clase.folder, recurso.archivo);
+                        highlightActiveSidebarItem('document', recurso.archivo);
                     },
                     isAccessed,
-                    formatDocumentName(doc) // Tooltip
+                    formatDocumentName(recurso.archivo)
                 );
                 docButton.setAttribute('data-resource-type', 'document');
-                docButton.setAttribute('data-resource-id', doc);
+                docButton.setAttribute('data-resource-id', recurso.archivo);
                 elements.documentsList.appendChild(docButton);
             }
         }
@@ -698,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     highlightActiveSidebarItem('campus', clase.campus_id);
                 },
                 false,
-                '🏫 Campus Virtual' // Tooltip
+                '🏫 Campus Virtual'
             );
             campusButton.setAttribute('data-resource-type', 'campus');
             campusButton.setAttribute('data-resource-id', clase.campus_id);
@@ -1348,4 +1387,195 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
         }
     }
+
+    // === MANAGEMENT / EDITOR FUNCTIONS ===
+    function openAdminModal() {
+        elements.adminModal.style.display = 'flex';
+        renderEditor();
+    }
+
+    function renderEditor() {
+        elements.cursadosEditorList.innerHTML = '';
+        state.classesData.cursados.forEach((cursado, cIndex) => {
+            const cursadoDiv = document.createElement('div');
+            cursadoDiv.className = 'editor-item';
+            cursadoDiv.innerHTML = `
+                <div class="editor-field">
+                    <label>Nombre del Cursado</label>
+                    <input type="text" class="editor-input" value="${cursado.nombre}" onchange="updateState('cursado', ${cIndex}, 'nombre', this.value)">
+                </div>
+                <div class="editor-field">
+                    <label>Nivel</label>
+                    <input type="text" class="editor-input" value="${cursado.nivel}" onchange="updateState('cursado', ${cIndex}, 'nivel', this.value)">
+                </div>
+                <div class="clases-list" id="clases-editor-${cIndex}"></div>
+                <button class="action-btn" onclick="addClaseToCursado(${cIndex})">＋ Añadir Clase</button>
+            `;
+            elements.cursadosEditorList.appendChild(cursadoDiv);
+
+            const clasesListDiv = cursadoDiv.querySelector('.clases-list');
+            cursado.clases.forEach((clase, clIndex) => {
+                const claseDiv = document.createElement('div');
+                claseDiv.className = 'clase-editor-item';
+                claseDiv.innerHTML = `
+                    <div class="editor-field">
+                        <label>Nombre de Clase</label>
+                        <input type="text" class="editor-input" value="${clase.nombre}" onchange="updateState('clase', [${cIndex}, ${clIndex}], 'nombre', this.value)">
+                    </div>
+                    <div class="editor-field">
+                        <label>Fecha (DD/MM/YYYY)</label>
+                        <input type="text" class="editor-input" value="${clase.fecha}" onchange="updateState('clase', [${cIndex}, ${clIndex}], 'fecha', this.value)">
+                    </div>
+                    <div class="editor-field">
+                        <label>Carpeta (en el servidor)</label>
+                        <input type="text" class="editor-input" value="${clase.folder}" onchange="updateState('clase', [${cIndex}, ${clIndex}], 'folder', this.value)">
+                    </div>
+                    <div class="recursos-editor" id="recursos-editor-${cIndex}-${clIndex}">
+                        ${clase.recursos.map((r, rIndex) => `
+                            <div class="recurso-row">
+                                <span class="badge">${r.tipo}</span> 
+                                <span>${r.tipo === 'Video_YouTube' ? r.id_ytb : r.archivo}</span>
+                                <button class="remove-btn" onclick="removeRecurso(${cIndex}, ${clIndex}, ${rIndex})">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="action-btn" onclick="addYoutubeToClase(${cIndex}, ${clIndex})" style="font-size: 0.8rem">＋ YouTube</button>
+                `;
+                clasesListDiv.appendChild(claseDiv);
+            });
+        });
+    }
+
+    // Expose functions to global scope for onclick handlers
+    window.updateState = (type, index, field, value) => {
+        if (type === 'cursado') {
+            state.classesData.cursados[index][field] = value;
+        } else if (type === 'clase') {
+            const [cIdx, clIdx] = index;
+            state.classesData.cursados[cIdx].clases[clIdx][field] = value;
+        }
+    };
+
+    window.addClaseToCursado = (cIndex) => {
+        state.classesData.cursados[cIndex].clases.push({
+            nombre: "Nueva Clase",
+            fecha: new Date().toLocaleDateString('es-ES'),
+            folder: "C" + (getAllClasses().length + 1) + "_Nueva_Clase",
+            recursos: []
+        });
+        renderEditor();
+    };
+
+    window.addYoutubeToClase = (cIndex, clIndex) => {
+        const ytbId = prompt("Ingresa el ID de YouTube (ej: 4il7Li-a684):");
+        if (ytbId) {
+            state.classesData.cursados[cIndex].clases[clIndex].recursos.push({
+                tipo: "Video_YouTube",
+                id_ytb: ytbId
+            });
+            renderEditor();
+        }
+    };
+
+    window.removeRecurso = (cIndex, clIndex, rIndex) => {
+        state.classesData.cursados[cIndex].clases[clIndex].recursos.splice(rIndex, 1);
+        renderEditor();
+    };
+
+    function addCursadoToEditor() {
+        state.classesData.cursados.push({
+            nombre: "Nueva Diplomatura",
+            nivel: "Diplomatura",
+            clases: []
+        });
+        renderEditor();
+    }
+
+    async function saveChanges(silent = false) {
+        try {
+            if (!silent) {
+                elements.saveAllBtn.textContent = 'Guardando...';
+                elements.saveAllBtn.disabled = true;
+            }
+
+            const payload = {
+                ...state.manifest,
+                cursados: state.classesData.cursados
+            };
+
+            const response = await fetch('/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                if (!silent) alert('¡Cambios guardados con éxito!');
+                // Wait a bit before reload to ensure server saved
+                setTimeout(() => location.reload(), 300);
+            } else {
+                throw new Error('Error al guardar');
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            alert('Error al guardar los cambios: ' + error.message);
+        } finally {
+            if (!silent) {
+                elements.saveAllBtn.textContent = 'Guardar Cambios';
+                elements.saveAllBtn.disabled = false;
+            }
+        }
+    }
+
+    // === QUICK ADD LOGIC ===
+    async function handleQuickAddClass() {
+        const name = prompt("Nombre de la nueva clase:");
+        if (!name) return;
+
+        let targetCursado = state.classesData.cursados[0];
+        const selectedValue = elements.classSelector.value;
+        const allClasses = getAllClasses();
+        const selectedClass = allClasses.find(c => c.folder === selectedValue);
+
+        if (selectedClass) {
+            targetCursado = state.classesData.cursados.find(cur =>
+                cur.clases.some(c => c.folder === selectedClass.folder)
+            );
+        }
+
+        const newClase = {
+            nombre: name,
+            fecha: new Date().toLocaleDateString('es-ES'),
+            class_number: (targetCursado.clases.length + 1).toString(),
+            folder: name.trim().replace(/\s+/g, '_').toLowerCase(),
+            recursos: []
+        };
+
+        targetCursado.clases.push(newClase);
+        await saveChanges(true); // Silent save
+    }
+
+    async function handleQuickAddYoutube() {
+        const videoId = prompt("ID del video de YouTube (ej. dQw4w9WgXcQ):");
+        if (!videoId) return;
+
+        const selectedValue = elements.classSelector.value;
+        const allClasses = getAllClasses();
+        const selectedClass = allClasses.find(c => c.folder === selectedValue);
+
+        if (!selectedClass) {
+            alert("Selecciona una clase primero.");
+            return;
+        }
+
+        if (!selectedClass.recursos) selectedClass.recursos = [];
+        selectedClass.recursos.push({
+            tipo: "Video_YouTube",
+            id_ytb: videoId
+        });
+
+        await saveChanges(true); // Silent save
+    }
+
+    window.saveChanges = saveChanges;
 });

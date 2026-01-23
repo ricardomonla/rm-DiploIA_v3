@@ -32,13 +32,20 @@
             </div>
 
             <div class="selector-container">
-                <select id="class-selector" class="dropdown">
-                    <option value="">Seleccione una clase</option>
-                </select>
+                <div class="selector-wrapper">
+                    <select id="class-selector" class="dropdown">
+                        <option value="">Seleccione una clase</option>
+                    </select>
+                    <button id="quick-add-class" class="icon-btn small-btn" title="Añadir Clase">+</button>
+                </div>
             </div>
 
             <div class="search-container">
                 <input type="text" id="class-search" placeholder="🔍 Buscar clase..." class="search-input">
+            </div>
+
+            <div class="sidebar-actions" id="sidebar-resource-actions" style="display: none;">
+                <button id="quick-add-youtube" class="action-btn tiny-btn">＋ YouTube</button>
             </div>
 
             <div id="documents-list"></div>
@@ -47,7 +54,10 @@
                 <button id="dark-mode-toggle" class="icon-btn" title="Modo Oscuro">
                     <i data-lucide="moon"></i>
                 </button>
-                <div class="version-tag">v6.9</div>
+                <button id="admin-toggle" class="icon-btn" title="Gestionar Contenido">
+                    <i data-lucide="settings"></i>
+                </button>
+                <div class="version-tag">v7.0</div>
             </div>
         </div>
         <main>
@@ -56,6 +66,23 @@
             </div>
             <div class="video-container">
                 <div id="youtube-player"></div>
+            </div>
+
+            <!-- Management Modal -->
+            <div id="admin-modal" class="modal-backdrop" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Gestión de Cursados</h2>
+                        <button id="close-modal" class="icon-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="cursados-editor-list"></div>
+                        <button id="add-cursado-btn" class="action-btn">＋ Nuevo Cursado</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="save-all-btn" class="primary-btn">Guardar Cambios</button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
