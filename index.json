@@ -24,11 +24,11 @@
       ]
     },
     {
-      "folder": "C02_Identificando_Cuellos_de_Botellas_y_Retos",
+      "folder": "C02_Identificando_cuellos_de_botella_y_retos",
       "youtube_id": "NgFip6vsdd0",
       "campus_id": "5",
       "class_number": "2",
-      "class_name": "Identificando cuellos de botellas y retos",
+      "class_name": "Identificando cuellos de botella y retos",
       "class_date": "09/10/2025",
       "docus": [
         "C0200 - Conceptos_Claves.md",
@@ -190,7 +190,7 @@
       "youtube_id": "IqxmMo1stLg",
       "campus_id": "15",
       "class_number": "12",
-      "class_name": "Integración de IA en aplicaciones No Code",
+      "class_name": "Integración de IA en Aplicaciones No Code",
       "class_date": "18/12/2025",
       "docus": [
         "C12 - Conceptos_Claves.md",
@@ -202,7 +202,7 @@
       "youtube_id": "pLHGG3Yn-58",
       "campus_id": "16",
       "class_number": "13",
-      "class_name": "Creación de asistentes virtuales",
+      "class_name": "Creación de Asistentes Virtuales",
       "class_date": "08/01/2026",
       "docus": [
         "C13D00 - Presentación 08-01-26.pdf",
@@ -213,11 +213,11 @@
       ]
     },
     {
-      "folder": "C14_Diseño_de_Encuestas_y_Análisis_de_Datos",
+      "folder": "C14_Diseño_de_encuestas_y_análisis_de_datos",
       "youtube_id": "YuVXQD9ofeU",
       "campus_id": "17",
       "class_number": "14",
-      "class_name": "Diseño de encuestas y Análisis de datos",
+      "class_name": "Diseño de encuestas y análisis de datos",
       "class_date": "15/01/2026",
       "docus": [
         "C1400 - Conceptos_Claves.md",
@@ -227,22 +227,31 @@
       ]
     },
     {
-      "folder": "C15_Mantenimiento_y_Escalabilidad",
-      "youtube_id": "",
-      "campus_id": "",
+      "folder": "C15_Mantenimiento_y_escalabilidad",
+      "youtube_id": "fzgRPzImNgI",
+      "campus_id": "18",
       "class_number": "15",
-      "class_name": "Mantenimiento y Escalabilidad",
-      "class_date": "15/01/2026",
-      "docus": []
+      "class_name": "Mantenimiento y escalabilidad",
+      "class_date": "22/01/2026",
+      "docus": [
+        "C1500 - Resumen Clase.md",
+        "C1501 - Diapositivas.pdf",
+        "C1502 - Material de Lectura.pdf",
+        "C1503 - Notas.md",
+        "C1505 - Video Clase 15.mp4"
+      ]
     },
     {
-      "folder": "C16_Definición_del_Proyecto_y_Plan_de_Acción",
+      "folder": "C16_Definición_del_proyecto_y_plan_de_acción",
       "youtube_id": "",
       "campus_id": "",
       "class_number": "16",
       "class_name": "Definición del proyecto y plan de acción",
-      "class_date": "22/01/2026",
-      "docus": []
+      "class_date": "29/01/2026",
+      "docus": [
+        "C1600 - Conceptos_Claves.md",
+        "C1601 - Notas.md"
+      ]
     },
     {
       "folder": "C17_Trabajo_Integrador_Final",

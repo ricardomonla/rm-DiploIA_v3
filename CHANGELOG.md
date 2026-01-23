@@ -1,5 +1,16 @@
 # Changelog - Clases DiploIA
 
+## [7.0] - 2026-01-23
+### Añadido
+- **Preparación Clase 16**: Creada estructura para "Definición del proyecto y plan de acción" (29/01/26).
+- **Metadata Enriquecida**:
+    - IDs de YouTube y Campus actualizados para Clase 15.
+    - Enlace de LinkedIn del docente Darío Ezequiel Alvarez en Clase 15.
+- **Sincronización de Cronograma**:
+    - Ajuste de nombres y carpetas según `Cronograma_del_Curso.pdf`.
+    - Corrección de erratas ("botella" vs "botellas") y estandarización de mayúsculas/minúsculas en títulos.
+    - Soporte para caracteres especiales (tildes) en nombres de directorios.
+
 ## [6.9] - 2026-01-18
 ### Añadido
 - **Refinement "Cyber-Tech Refined"**:
