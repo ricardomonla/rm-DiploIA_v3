@@ -98,7 +98,8 @@ document.addEventListener('DOMContentLoaded', function () {
         progressTracker: new ProgressTracker(),
         manifest: null,
         isDarkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true',
-        isSidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true'
+        isSidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+        isGitHubPages: window.location.hostname.includes('github.io')
     };
 
     // === DOM ELEMENTS ===
@@ -134,6 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
             populateDropdown();
             await autoSelectClass();
             setupEventListeners();
+            checkStaticEnvironment();
         } catch (error) {
             console.error('Initialization error:', error);
             showError('Error al inicializar la aplicación');
@@ -144,6 +146,22 @@ document.addEventListener('DOMContentLoaded', function () {
         if (state.isDarkMode) document.body.classList.add('dark-mode');
         if (state.isSidebarCollapsed) elements.sidebar.classList.add('collapsed');
         updateDarkModeIcon();
+
+        // Update version tag from CONFIG
+        const versionTag = document.querySelector('.version-tag');
+        if (versionTag) versionTag.textContent = `v${CONFIG.version}`;
+    }
+
+    function checkStaticEnvironment() {
+        if (state.isGitHubPages) {
+            console.info('Running on GitHub Pages. Management features are Read-Only.');
+            if (elements.adminToggle) {
+                elements.adminToggle.title = 'Modo Lectura (GitHub)';
+                elements.adminToggle.style.opacity = '0.5';
+            }
+            if (elements.quickAddClass) elements.quickAddClass.style.display = 'none';
+            if (elements.quickAddYoutube) elements.quickAddYoutube.style.display = 'none';
+        }
     }
 
     function setupEventListeners() {
@@ -1493,6 +1511,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function saveChanges(silent = false) {
         try {
+            if (state.isGitHubPages) {
+                alert('Estás viendo la versión estática en GitHub. Los cambios solo se pueden guardar ejecutando la app localmente.');
+                return;
+            }
+
             if (!silent) {
                 elements.saveAllBtn.textContent = 'Guardando...';
                 elements.saveAllBtn.disabled = true;
