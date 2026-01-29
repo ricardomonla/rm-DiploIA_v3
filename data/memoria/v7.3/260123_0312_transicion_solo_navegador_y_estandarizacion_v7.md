@@ -1,11 +1,13 @@
 # Transición a Flujo de Trabajo Solo Navegador (v7.0)
+> [!NOTE]
+> **CONSOLIDADO**: Este documento ha sido verificado e integrado en el [Hito 7.3.2](file:///home/rmonla/Documentos/GitHub/rm-DiploIA_v3/data/memoria/v7.3/7.3.2_integracion_transicion.md).
 
 Se ha completado la reestructuración de la plataforma para permitir la gestión total del contenido desde la interfaz web, eliminando la necesidad de editar archivos JSON manualmente.
 
 ## Cambios Principales
 
 ### 1. Respaldo de Seguridad
-- Se creó la carpeta `_vers/rm-DiploIA_v7.0` conteniendo la versión funcional previa.
+- Se creó la carpeta `data/memoria/_hist/v7.0` conteniendo la versión funcional previa.
 
 ### 2. Nueva Jerarquía de Datos
 - **index.json**: Se migró la estructura plana de clases a una jerarquía de **Cursados -> Clases -> Recursos**.

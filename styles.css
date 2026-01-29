@@ -300,6 +300,7 @@ header h1 {
 
 .action-btn:hover {
     background: rgba(0, 163, 255, 0.1);
+    transform: translateY(-2px);
 }
 
 .clase-editor-item {
