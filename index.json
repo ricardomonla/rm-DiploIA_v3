@@ -505,10 +505,6 @@
             {
               "tipo": "Documento",
               "archivo": "C1503 - Notas.md"
-            },
-            {
-              "tipo": "Documento",
-              "archivo": "C1505 - Video Clase 15.mp4"
             }
           ]
         },
@@ -568,6 +564,5 @@
         }
       ]
     }
-  ],
   ]
 }
