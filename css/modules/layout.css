@@ -1,0 +1,125 @@
+/* Main App Container - Fixed Viewport */
+.container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    /* Lock to viewport */
+    margin: 0;
+    padding: 10px;
+    /* Reduced padding */
+    gap: 15px;
+    box-sizing: border-box;
+    overflow: hidden;
+    /* Prevent body scroll */
+}
+
+main {
+    flex: 1;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100%;
+    /* Fill container */
+    overflow: hidden;
+    /* Internal scrolling only */
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    /* Add radius to sidebar itself if desired */
+    height: 100%;
+    /* Fit inside container */
+    padding: 15px;
+    /* Reduced padding */
+    box-sizing: border-box;
+    transition: all var(--transition-speed) ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-header {
+    display: flex;
+    flex-direction: column;
+    /* Stack row and search */
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 0;
+    flex-shrink: 0;
+    /* Don't shrink */
+}
+
+.header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.header-row h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 5px;
+}
+
+/* Sidebar Middle Content Wrapper would be ideal, but we have siblings.
+   We make sidebar-tree flex: 1 to push footer down and scroll.
+*/
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+/* Sidebar Collapsed State */
+.sidebar.collapsed {
+    min-width: 60px;
+    width: 60px;
+    padding: 15px 0;
+}
+
+.sidebar.collapsed h3,
+.sidebar.collapsed .search-container {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+}
+
+/* Mobile Layout */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+}

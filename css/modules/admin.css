@@ -1,0 +1,73 @@
+/* Admin Mode Tweak */
+body.admin-mode-active .sidebar {
+    border-right: 2px solid var(--accent-color);
+    box-shadow: 10px 0 40px rgba(172, 0, 255, 0.15);
+}
+
+body.admin-mode-active #admin-mode-toggle {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 0 15px var(--accent-color);
+}
+
+.admin-only {
+    display: none !important;
+}
+
+body.admin-mode-active .admin-only {
+    display: flex !important;
+}
+
+/* Tree Actions */
+.node-actions {
+    display: none;
+    gap: 4px;
+    position: absolute;
+    right: 8px;
+    background: var(--sidebar-bg);
+    padding-left: 8px;
+    border-radius: 4px;
+}
+
+.admin-mode-active .node-header:hover .node-actions {
+    display: flex;
+}
+
+/* Modal Editor */
+#admin-modal .modal-content {
+    max-width: 1000px;
+    width: 95%;
+    max-height: 85vh;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+#cursados-editor-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--sidebar-bg);
+    border: 1px solid var(--neon-border);
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(0, 163, 255, 0.2);
+    color: var(--text-color);
+}

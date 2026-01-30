@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clases DiploIA v7.4</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=7.4.5">
     <!-- Google Fonts: Rajdhani for headers, Inter for body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,22 +27,24 @@
     <div class="container">
         <div class="sidebar" id="documents-sidebar">
             <div class="sidebar-header">
-                <h3>Navegación</h3>
-                <button id="sidebar-toggle-btn" class="icon-btn" title="Toggle Sidebar">📖</button>
+                <div class="header-row">
+                    <h3>Navegación</h3>
+                    <div class="header-actions">
+                        <button id="sidebar-toggle-btn" class="icon-btn" title="Toggle Sidebar">📖</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="search-container">
-                <input type="text" id="class-search" placeholder="🔍 Buscar..." class="search-input">
+            <div id="breadcrumb-nav" class="toc-container">
+                <!-- Hierarchical navigation will be rendered here -->
             </div>
 
-            <div id="sidebar-tree" class="sidebar-tree">
-                <!-- Tree navigation will be rendered here -->
+            <div id="context-view" class="context-view">
+                <!-- Dynamic children list will be rendered here -->
             </div>
+
 
             <div class="sidebar-footer">
-                <button id="dark-mode-toggle" class="icon-btn" title="Modo Oscuro">
-                    <i data-lucide="moon"></i>
-                </button>
                 <div class="admin-controls">
                     <button id="admin-mode-toggle" class="icon-btn" title="Modo Administración">
                         <i data-lucide="shield"></i>
@@ -85,7 +87,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
-    <script src="script.js?v=7.4.2"></script>
+    <script type="module" src="js/script.js?v=7.4.3"></script>
 </body>
 
 </html>

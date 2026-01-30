@@ -1,0 +1,144 @@
+/* UI Components */
+.icon-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    transition: all var(--transition-speed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background: rgba(0, 163, 255, 0.1);
+    border-color: var(--primary-color);
+    box-shadow: var(--glow-shadow);
+    transform: scale(1.05);
+}
+
+.search-container {
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-color);
+    padding: 12px 20px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: var(--glow-shadow);
+    background-color: var(--sidebar-bg);
+}
+
+.action-btn-mini {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-color);
+}
+
+.action-btn-mini:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Class title container */
+.class-title-container {
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--neon-border);
+    border-radius: var(--border-radius);
+    padding: 15px 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--glow-shadow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0;
+}
+
+.class-title-container h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(0, 163, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+    .class-title-container h2 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Markdown viewer styling */
+.markdown-viewer {
+    text-align: left;
+    line-height: 1.8;
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 0;
+    /* Let parent handle radius */
+    border: none;
+    /* Parent has border ?? No, parent is transparent usually. */
+    margin: 0;
+    /* Fill container */
+    overflow-x: auto;
+    min-height: 100%;
+    /* Ensure it fills height */
+    box-sizing: border-box;
+}
+
+.markdown-viewer h1,
+.markdown-viewer h2,
+.markdown-viewer h3 {
+    color: var(--text-color);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-viewer h1 {
+    font-size: 2.2rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.3em;
+}
+
+.markdown-viewer pre {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--neon-border) !important;
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+.markdown-viewer code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+}

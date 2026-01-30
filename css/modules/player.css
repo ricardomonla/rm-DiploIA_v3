@@ -1,0 +1,89 @@
+/* Video Player */
+.video-container {
+    margin: 5px 0;
+    text-align: center;
+    transition: opacity var(--transition-speed) ease;
+    flex: 1;
+    min-width: 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+#youtube-player {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    max-height: 80vh;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    margin: 0 auto;
+    background-color: transparent;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+/* Document Mode: Remove aspect ratio constraints but match video height logic */
+#youtube-player.document-mode {
+    aspect-ratio: auto;
+    height: 80vh;
+    /* Fixed height matching video max-height area */
+    max-height: 80vh;
+    overflow-y: auto;
+    /* Scroll internally */
+    background: transparent;
+    display: block;
+    /* Ensure block layout */
+}
+
+/* Video progress overlay */
+.video-progress-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Helper for iframe sizes on mobile handled in layout.css or here */
+@media (max-width: 768px) {
+    #youtube-player:not(.document-mode) {
+        height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    #youtube-player:not(.document-mode) {
+        height: 200px;
+    }
+}
+
+/* Video Loader Overlay */
+.video-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    color: var(--text-muted);
+    gap: 10px;
+}
+
+.video-loader .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}

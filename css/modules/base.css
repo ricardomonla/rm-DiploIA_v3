@@ -1,0 +1,88 @@
+/* Cyber-Tech design system inspired by theapexweb.com */
+:root {
+    /* Enforced Dark Mode (Cyber-Tech) */
+    --primary-color: #00A3FF;
+    /* Vibrant Cyan */
+    --secondary-color: #00D1FF;
+    /* Lighter Cyan */
+    --accent-color: #AC00FF;
+    /* Electric Purple */
+    --success-color: #00FF85;
+    /* Neon Green */
+
+    /* Dark Mode Theme Variables */
+    --text-color: #FFFFFF;
+    --text-muted: #A0A0A0;
+    --bg-color: #050505;
+    --sidebar-bg: rgba(15, 23, 42, 0.7);
+    --card-bg: rgba(30, 41, 59, 0.4);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --neon-border: rgba(0, 163, 255, 0.3);
+    --glow-shadow: 0 0 20px rgba(0, 163, 255, 0.4);
+
+    --transition-speed: 0.3s;
+    --border-radius: 20px;
+    --sidebar-width: 320px;
+}
+
+/* Custom Cyber-Tech Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 163, 255, 0.3);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color);
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 163, 255, 0.3) transparent;
+}
+
+/* Base Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 0;
+    transition: background-color var(--transition-speed) ease;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.9rem;
+}
+
+:not(pre)>code {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
