@@ -533,6 +533,10 @@
           "campus_id": "",
           "recursos": [
             {
+              "tipo": "Video_YouTube",
+              "id_ytb": "FIsuo9jTNmI"
+            },
+            {
               "tipo": "Documento",
               "archivo": "01 - Presentación.pdf"
             },
