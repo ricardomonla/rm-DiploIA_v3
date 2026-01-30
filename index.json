@@ -3,7 +3,8 @@
   "allowed_extensions": [
     ".pdf",
     ".md",
-    ".mp4"
+    ".mp4",
+    ".txt"
   ],
   "url_base_campus": "https://cursos.utnba.centrodeelearning.com/course/view.php?id=7700&section=",
   "url_base_youtube": "https://www.youtube.com/embed/",
@@ -43,7 +44,8 @@
               "tipo": "Documento",
               "archivo": "C0104 - Material de lectura clase 1.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Identificando cuellos de botella y retos",
@@ -68,7 +70,8 @@
               "tipo": "Documento",
               "archivo": "C0202 - Material de lectura - Clase 2.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Innovación y Design Thinking con IA",
@@ -93,7 +96,8 @@
               "tipo": "Documento",
               "archivo": "C0302 - Material de lectura.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Fundamentos de IA y plataforma No Code",
@@ -130,7 +134,8 @@
               "tipo": "Documento",
               "archivo": "C0405 - Tutorial - Crear cuenta en Make.mp4"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Herramientas No Code para la productividad",
@@ -171,7 +176,8 @@
               "tipo": "Documento",
               "archivo": "C0506 - Tutorial - Conexión Gmail - Make.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "IA para generar código sin conocimiento previo I",
@@ -200,7 +206,8 @@
               "tipo": "Documento",
               "archivo": "C0603 - Material de Lectura.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "IA para generar código sin conocimiento previo II",
@@ -233,7 +240,8 @@
               "tipo": "Documento",
               "archivo": "C0704 - Checklist Zoom.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Automatización de tareas I",
@@ -286,7 +294,8 @@
               "tipo": "Documento",
               "archivo": "C0809 - Actualización de Make.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Automatización de tareas II",
@@ -319,7 +328,8 @@
               "tipo": "Documento",
               "archivo": "C0904 - Automatización de clase - Router + Gestión de errores.Blueprint.md"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Creación de herramientas internas y paneles I",
@@ -352,7 +362,8 @@
               "tipo": "Documento",
               "archivo": "C1004 - Ejemplo Dashboard.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Clase Extra - Entornos",
@@ -373,7 +384,8 @@
               "tipo": "Documento",
               "archivo": "C10e01 Diapositivas_de_Clase_2025-12-10.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Creación de herramientas internas y paneles II",
@@ -394,7 +406,8 @@
               "tipo": "Documento",
               "archivo": "C1101 - Diapositivas_de_Clase_2025-12-10.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Integración de IA en Aplicaciones No Code",
@@ -415,7 +428,8 @@
               "tipo": "Documento",
               "archivo": "C12D00 - Diapositivas_de_Clase_2025-12-11.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Creación de Asistentes Virtuales",
@@ -448,7 +462,8 @@
               "tipo": "Documento",
               "archivo": "C13D04 - Enlaces.md"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Diseño de encuestas y análisis de datos",
@@ -477,7 +492,8 @@
               "tipo": "Documento",
               "archivo": "C14D02 - Material de lectura.pdf"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Mantenimiento y escalabilidad",
@@ -506,7 +522,8 @@
               "tipo": "Documento",
               "archivo": "C1503 - Notas.md"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Definición del proyecto y plan de acción",
@@ -517,13 +534,18 @@
           "recursos": [
             {
               "tipo": "Documento",
+              "archivo": "01 - Presentación.pdf"
+            },
+            {
+              "tipo": "Documento",
               "archivo": "C1600 - Conceptos_Claves.md"
             },
             {
               "tipo": "Documento",
               "archivo": "C1601 - Notas.md"
             }
-          ]
+          ],
+          "isLoaded": true
         },
         {
           "nombre": "Trabajo Integrador Final",
@@ -535,32 +557,17 @@
             {
               "tipo": "Documento",
               "archivo": "260104 - Consigna Trabajo Práctico Final.pdf"
-            },
-            {
-              "tipo": "Documento",
-              "archivo": "260116 - Ideas para mejoras.md"
-            },
-            {
-              "tipo": "Documento",
-              "archivo": "260117-0812 **> TPFI dtic-GEMA.md"
-            },
-            {
-              "tipo": "Documento",
-              "archivo": "260117-0823 **> Resumen Ejecutivo.md"
-            },
-            {
-              "tipo": "Documento",
-              "archivo": "260117-0829 **> Preguntas Frecuentes (FAQ).md"
-            },
-            {
-              "tipo": "Documento",
-              "archivo": "260117-0841 **> Enlaces.md"
-            },
-            {
-              "tipo": "Documento",
-              "archivo": "260117-0858 **> Inicio de Puesta en Marcha.md"
             }
-          ]
+          ],
+          "isLoaded": true
+        },
+        {
+          "nombre": "Clase de Prueba",
+          "fecha": "29/1/2026",
+          "class_number": "19",
+          "folder": "clase_de_prueba",
+          "recursos": [],
+          "isLoaded": true
         }
       ]
     }

@@ -48,6 +48,51 @@ class DynamicHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
                 print(f"[{datetime.now()}] Error saving index.json: {e}")
+        
+        elif self.path == '/api/upload':
+            import cgi
+            try:
+                form = cgi.FieldStorage(
+                    fp=self.rfile,
+                    headers=self.headers,
+                    environ={'REQUEST_METHOD': 'POST'}
+                )
+                
+                target_folder = form.getvalue('targetFolder')
+                if 'file' not in form:
+                    raise Exception("No file part in request")
+                
+                file_item = form['file']
+                if not file_item.filename:
+                    raise Exception("No selected file")
+
+                if not target_folder:
+                    raise Exception("Missing target folder")
+
+                # Load config to get docus_dir
+                with open('index.json', 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                docus_dir = config.get('docus_dir', 'data/cursados/')
+                
+                save_path = os.path.join(docus_dir, target_folder, file_item.filename)
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                
+                with open(save_path, 'wb') as f:
+                    f.write(file_item.file.read())
+                
+                print(f"[{datetime.now()}] Uploaded file: {save_path}")
+                self.sync_index()
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success", "file": file_item.filename}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
+                print(f"[{datetime.now()}] Upload error: {e}")
         else:
             self.send_response(404)
             self.end_headers()

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clases DiploIA v7.2</title>
+    <title>Clases DiploIA v7.4</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Google Fonts: Rajdhani for headers, Inter for body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,37 +27,31 @@
     <div class="container">
         <div class="sidebar" id="documents-sidebar">
             <div class="sidebar-header">
-                <h3>Recursos</h3>
+                <h3>Navegación</h3>
                 <button id="sidebar-toggle-btn" class="icon-btn" title="Toggle Sidebar">📖</button>
             </div>
 
-            <div class="selector-container">
-                <div class="selector-wrapper">
-                    <select id="class-selector" class="dropdown">
-                        <option value="">Seleccione una clase</option>
-                    </select>
-                    <button id="quick-add-class" class="icon-btn small-btn" title="Añadir Clase">+</button>
-                </div>
-            </div>
-
             <div class="search-container">
-                <input type="text" id="class-search" placeholder="🔍 Buscar clase..." class="search-input">
+                <input type="text" id="class-search" placeholder="🔍 Buscar..." class="search-input">
             </div>
 
-            <div class="sidebar-actions" id="sidebar-resource-actions" style="display: none;">
-                <button id="quick-add-youtube" class="action-btn tiny-btn">＋ YouTube</button>
+            <div id="sidebar-tree" class="sidebar-tree">
+                <!-- Tree navigation will be rendered here -->
             </div>
-
-            <div id="documents-list"></div>
 
             <div class="sidebar-footer">
                 <button id="dark-mode-toggle" class="icon-btn" title="Modo Oscuro">
                     <i data-lucide="moon"></i>
                 </button>
-                <button id="admin-toggle" class="icon-btn" title="Gestionar Contenido">
-                    <i data-lucide="settings"></i>
-                </button>
-                <div class="version-tag">v7.2</div>
+                <div class="admin-controls">
+                    <button id="admin-mode-toggle" class="icon-btn" title="Modo Administración">
+                        <i data-lucide="shield"></i>
+                    </button>
+                    <button id="open-mgmt-btn" class="icon-btn admin-only" title="Gestión Avanzada">
+                        <i data-lucide="settings"></i>
+                    </button>
+                </div>
+                <div class="version-tag">v7.4</div>
             </div>
         </div>
         <main>
@@ -91,7 +85,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=7.4.2"></script>
 </body>
 
 </html>

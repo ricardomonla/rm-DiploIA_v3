@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === CONFIGURATION & CONSTANTS ===
     const CONFIG = {
-        version: '7.2',
+        version: '7.4',
         apiEndpoints: {
             docusConfig: 'docus.json'
         }
@@ -99,28 +99,26 @@ document.addEventListener('DOMContentLoaded', function () {
         manifest: null,
         isDarkMode: localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true',
         isSidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
-        isGitHubPages: window.location.hostname.includes('github.io')
+        isGitHubPages: window.location.hostname.includes('github.io'),
+        isAdminMode: false,
+        expandedNodes: new Set()
     };
 
     // === DOM ELEMENTS ===
     const elements = {
-        classSelector: document.getElementById('class-selector'),
         youtubePlayer: document.getElementById('youtube-player'),
-        documentsList: document.getElementById('documents-list'),
         selectedClassTitle: document.getElementById('selected-class-title'),
         classSearch: document.getElementById('class-search'),
         darkModeToggle: document.getElementById('dark-mode-toggle'),
         sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
         sidebar: document.getElementById('documents-sidebar'),
-        adminToggle: document.getElementById('admin-toggle'),
+        adminModeToggle: document.getElementById('admin-mode-toggle'),
+        sidebarTree: document.getElementById('sidebar-tree'),
         adminModal: document.getElementById('admin-modal'),
         closeModal: document.getElementById('close-modal'),
-        cursadosEditorList: document.getElementById('cursados-editor-list'),
-        addCursadoBtn: document.getElementById('add-cursado-btn'),
         saveAllBtn: document.getElementById('save-all-btn'),
-        quickAddClass: document.getElementById('quick-add-class'),
-        sidebarResourceActions: document.getElementById('sidebar-resource-actions'),
-        quickAddYoutube: document.getElementById('quick-add-youtube')
+        addCursadoBtn: document.getElementById('add-cursado-btn'),
+        openMgmtBtn: document.getElementById('open-mgmt-btn')
     };
 
     // === INITIALIZATION ===
@@ -132,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function () {
             applyInitialUIState();
             await loadDocusConfig();
             await loadClassesData();
-            populateDropdown();
-            await autoSelectClass();
+            renderSidebarTree();
+            await autoSelectClassAtRuntime();
             setupEventListeners();
             checkStaticEnvironment();
         } catch (error) {
@@ -154,57 +152,68 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function checkStaticEnvironment() {
         if (state.isGitHubPages) {
-            console.info('Running on GitHub Pages. Management features are Read-Only.');
-            if (elements.adminToggle) {
-                elements.adminToggle.title = 'Modo Lectura (GitHub)';
-                elements.adminToggle.style.opacity = '0.5';
+            console.info('Running on GitHub Pages. Management features are disabled.');
+            if (elements.adminModeToggle) {
+                elements.adminModeToggle.title = 'Lectura (GitHub)';
+                elements.adminModeToggle.style.opacity = '0.3';
+                elements.adminModeToggle.style.cursor = 'not-allowed';
             }
-            if (elements.quickAddClass) elements.quickAddClass.style.display = 'none';
-            if (elements.quickAddYoutube) elements.quickAddYoutube.style.display = 'none';
         }
     }
 
     function setupEventListeners() {
-        elements.classSelector.addEventListener('change', handleClassSelection);
-        elements.classSelector.addEventListener('change', (e) => {
-            localStorage.setItem('selectedClass', e.target.value);
-        });
-
         // Search Filter
-        elements.classSearch.addEventListener('input', handleSearch);
+        if (elements.classSearch) elements.classSearch.addEventListener('input', handleSearch);
 
         // Dark Mode Toggle
-        elements.darkModeToggle.addEventListener('click', toggleDarkMode);
+        if (elements.darkModeToggle) elements.darkModeToggle.addEventListener('click', toggleDarkMode);
 
         // Sidebar Toggle
-        elements.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+        if (elements.sidebarToggleBtn) elements.sidebarToggleBtn.addEventListener('click', toggleSidebar);
 
-        // Admin/Management
-        elements.adminToggle.addEventListener('click', openAdminModal);
-        elements.closeModal.addEventListener('click', () => elements.adminModal.style.display = 'none');
-        elements.addCursadoBtn.addEventListener('click', addCursadoToEditor);
-        elements.saveAllBtn.addEventListener('click', saveChanges);
+        // Admin Mode Toggle
+        if (elements.adminModeToggle) elements.adminModeToggle.addEventListener('click', toggleAdminMode);
 
-        // Quick Actions
-        elements.quickAddClass.addEventListener('click', handleQuickAddClass);
-        elements.quickAddYoutube.addEventListener('click', handleQuickAddYoutube);
+        // Modal Controls
+        if (elements.closeModal) elements.closeModal.onclick = () => elements.adminModal.style.display = 'none';
+        if (elements.saveAllBtn) elements.saveAllBtn.onclick = () => saveChanges();
+        if (elements.addCursadoBtn) elements.addCursadoBtn.onclick = () => addNewCursado();
+        if (elements.openMgmtBtn) elements.openMgmtBtn.onclick = () => openAdminModal();
 
-        // Add window unload event to save progress
         window.addEventListener('beforeunload', saveCurrentProgress);
-
-        // Add visibility change event to handle tab switching
         document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
     function handleSearch() {
         const term = elements.classSearch.value.toLowerCase();
-        const options = elements.classSelector.options;
+        const treeNodes = elements.sidebarTree.querySelectorAll('.tree-node');
 
-        for (let i = 1; i < options.length; i++) {
-            const text = options[i].textContent.toLowerCase();
-            const match = text.includes(term);
-            options[i].style.display = match ? '' : 'none';
-        }
+        treeNodes.forEach(node => {
+            const label = node.querySelector('.node-label').textContent.toLowerCase();
+            const isMatch = label.includes(term);
+            const parentNode = node.closest('.course-node');
+
+            if (node.classList.contains('class-node')) {
+                node.style.display = isMatch ? 'block' : 'none';
+                if (isMatch && parentNode) {
+                    parentNode.style.display = 'block';
+                    parentNode.classList.add('expanded');
+                }
+            }
+        });
+
+        // Hide courses with no visible classes if they don't match either
+        const courseNodes = elements.sidebarTree.querySelectorAll('.course-node');
+        courseNodes.forEach(course => {
+            const courseLabel = course.querySelector('.node-label').textContent.toLowerCase();
+            const hasVisibleClasses = Array.from(course.querySelectorAll('.class-node')).some(cn => cn.style.display !== 'none');
+
+            if (!courseLabel.includes(term) && !hasVisibleClasses) {
+                course.style.display = 'none';
+            } else {
+                course.style.display = 'block';
+            }
+        });
     }
 
     function toggleDarkMode() {
@@ -272,79 +281,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Function to fetch subdirectories (Now legacy/fallback or for specific uses, but manifest is preferred)
-    async function fetchSubdirectories() {
-        // Obsolete in v6.6, handled by index.json
-        return [];
-    }
-
-    async function reloadClassData(dirName) {
-        // In v6.6, data is loaded once from manifest. No need to reload individual class data.
-        // This function now just returns the existing class data from state.
-        const existingClass = state.classesData.clases.find(clase => clase.nombre === dirName);
-        if (existingClass) {
-            return existingClass;
-        } else {
-            console.warn(`Class data for ${dirName} not found in manifest during reloadClassData.`);
-            return {
-                nombre: dirName,
-                youtube_id: '',
-                campus_id: '',
-                class_number: '',
-                class_name: '',
-                docus: []
-            };
-        }
-    }
-
-    async function reloadClassData(dirName) {
-        const updatedClass = await loadClassData(dirName);
-        const index = state.classesData.clases.findIndex(clase => clase.nombre === dirName);
-        if (index !== -1) {
-            state.classesData.clases[index] = updatedClass;
-        }
-        return updatedClass;
-    }
-
-    async function extractDocuments(response) {
-        const html = await response.text();
-        console.log('Documents HTML:', html.substring(0, 500)); // Log first 500 chars
-        const regex = /href="([^"]+)"/g;
-        const documents = [];
-        let match;
-
-        while ((match = regex.exec(html)) !== null) {
-            const docHref = match[1];
-            console.log('Found doc href:', docHref);
-            if (docHref && !docHref.includes('..') && !docHref.endsWith('/')) {
-                const isAllowed = CONFIG.allowedExtensions.some(ext => docHref.endsWith(ext));
-                console.log(`Doc ${docHref} allowed:`, isAllowed);
-                if (isAllowed) {
-                    documents.push(decodeURIComponent(docHref));
-                }
-            }
-        }
-
-        console.log('Final documents list:', documents);
-        return documents;
-    }
-
-    // === UI MANAGEMENT ===
-    function populateDropdown() {
-        elements.classSelector.innerHTML = '<option value="">Seleccione una clase</option>';
-
-        state.classesData.cursados.forEach(cursado => {
-            const group = document.createElement('optgroup');
-            group.label = `${cursado.nombre} (${cursado.nivel})`;
-
-            cursado.clases.forEach(clase => {
-                const option = createClassOption(clase);
-                group.appendChild(option);
-            });
-
-            elements.classSelector.appendChild(group);
-        });
-    }
 
     function getAllClasses() {
         let all = [];
@@ -352,13 +288,6 @@ document.addEventListener('DOMContentLoaded', function () {
             all = all.concat(curs.clases);
         });
         return all;
-    }
-
-    function createClassOption(clase) {
-        const option = document.createElement('option');
-        option.value = clase.folder;
-        option.textContent = formatClassName(clase);
-        return option;
     }
 
     function formatClassName(clase) {
@@ -384,66 +313,160 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function autoSelectClass() {
-        const savedClass = localStorage.getItem('selectedClass');
-        const allClasses = getAllClasses();
-        if (savedClass) {
-            elements.classSelector.value = savedClass;
-            await handleClassSelection();
-        } else if (allClasses[0]) {
-            elements.classSelector.value = allClasses[0].folder;
-            await handleClassSelection();
-        }
+    function renderSidebarTree() {
+        if (!elements.sidebarTree) return;
+        elements.sidebarTree.innerHTML = '';
+
+        state.classesData.cursados.forEach((cursado, cIndex) => {
+            const courseNode = createTreeNode('course', cursado.nombre, cIndex);
+            const courseContent = courseNode.querySelector('.node-content');
+
+            cursado.clases.forEach((clase, clIndex) => {
+                const classNode = createTreeNode('class', formatClassName(clase), [cIndex, clIndex], clase.folder);
+                courseContent.appendChild(classNode);
+
+                // If admin mode, show resources in tree as well
+                if (state.isAdminMode) {
+                    const classContent = classNode.querySelector('.node-content');
+                    (clase.recursos || []).forEach((recurso, rIndex) => {
+                        const resNode = createResourceNode(recurso, [cIndex, clIndex, rIndex]);
+                        classContent.appendChild(resNode);
+                    });
+
+                    // Add "＋ Recurso" button in admin mode
+                    const addResBtn = document.createElement('div');
+                    addResBtn.className = 'tree-actions admin-only';
+                    addResBtn.style.display = 'flex';
+                    addResBtn.style.padding = '5px 20px';
+                    addResBtn.innerHTML = `
+                        <button class="action-btn" onclick="showResourceMenu(event, ${cIndex}, ${clIndex})">＋ Recurso</button>
+                    `;
+                    classContent.appendChild(addResBtn);
+                }
+            });
+
+            elements.sidebarTree.appendChild(courseNode);
+        });
+
+        if (window.lucide) lucide.createIcons();
     }
 
-    async function handleClassSelection() {
-        const selectedClassName = elements.classSelector.value;
-        if (!selectedClassName) {
-            clearPlayer();
-            clearDocuments();
-            updateClassTitle('Seleccionar una clase');
-            elements.sidebarResourceActions.style.display = 'none';
-            return;
+    function createTreeNode(type, label, index, folder = null) {
+        const node = document.createElement('div');
+        node.className = `tree-node ${type}-node`;
+        if (state.expandedNodes.has(JSON.stringify(index))) {
+            node.classList.add('expanded');
         }
 
-        elements.sidebarResourceActions.style.display = 'flex';
+        const isSelected = folder && state.selectedClass === folder;
+        const icon = type === 'course' ? 'book' : 'calendar';
 
-        // Save progress for previous class before switching
-        if (state.selectedClass && state.selectedClass !== selectedClassName) {
-            saveCurrentProgress();
+        node.innerHTML = `
+            <div class="node-header ${isSelected ? 'active' : ''}" onclick="handleNodeClick(event, '${type}', ${JSON.stringify(index)}, '${folder || ''}')">
+                <i data-lucide="chevron-right" class="chevron-icon"></i>
+                <i data-lucide="${icon}"></i>
+                <span class="node-label">${label}</span>
+                <div class="node-actions admin-only">
+                    ${type === 'course' ? `
+                        <button class="action-btn-mini" onclick="addClaseToCursado(event, ${index})" title="Añadir Clase"><i data-lucide="plus"></i></button>
+                    ` : `
+                        <button class="action-btn-mini" onclick="editNodeName(event, 'clase', ${JSON.stringify(index)})" title="Editar"><i data-lucide="edit-2"></i></button>
+                        <button class="action-btn-mini" onclick="deleteClass(event, ${JSON.stringify(index)})" title="Borrar"><i data-lucide="trash-2"></i></button>
+                    `}
+                </div>
+            </div>
+            <div class="node-content"></div>
+        `;
+        return node;
+    }
+
+    function createResourceNode(recurso, path) {
+        const div = document.createElement('div');
+        div.className = 'tree-resource';
+        const icon = recurso.tipo === 'Video_YouTube' ? 'youtube' : 'file-text';
+        div.innerHTML = `
+            <i data-lucide="${icon}" style="width: 14px; height: 14px;"></i>
+            <span>${recurso.tipo === 'Video_YouTube' ? 'Video Clase' : recurso.archivo}</span>
+            <div class="node-actions admin-only">
+                <button class="action-btn-mini" onclick="deleteResource(event, ${JSON.stringify(path)})"><i data-lucide="x"></i></button>
+            </div>
+        `;
+        return div;
+    }
+
+    window.handleNodeClick = async (event, type, index, folder) => {
+        event.stopPropagation();
+
+        const node = event.currentTarget.closest('.tree-node');
+        const isExpanded = node.classList.toggle('expanded');
+
+        const indexKey = JSON.stringify(index);
+        if (isExpanded) {
+            state.expandedNodes.add(indexKey);
+        } else {
+            state.expandedNodes.delete(indexKey);
         }
 
-        // Re-fetch manifest to ensure resources are up-to-date (dynamic sync)
+        if (type === 'class' && folder) {
+            await selectTreeClass(folder);
+        }
+    };
+
+    async function selectTreeClass(folder) {
+        if (state.selectedClass === folder && !state.isAdminMode) return;
+
+        state.selectedClass = folder;
+        localStorage.setItem('selectedClass', folder);
+
+        // UI update
+        document.querySelectorAll('.class-node .node-header').forEach(el => el.classList.remove('active'));
+        const activeNode = elements.sidebarTree.querySelector(`.class-node [onclick*="'${folder}'"]`);
+        if (activeNode) activeNode.classList.add('active');
+
+        // Logic from old handleClassSelection
         await loadDocusConfig();
         await loadClassesData();
 
-        state.selectedClass = selectedClassName;
-
         const allClasses = getAllClasses();
-        let selectedClass = allClasses.find(clase => clase.folder === selectedClassName);
-
-        if (selectedClass && !selectedClass.isLoaded) {
-            console.log(`Lazy loading data for ${selectedClassName}...`);
-            // selectedClass = await reloadClassData(selectedClassName);
-            selectedClass.isLoaded = true;
-        }
+        const selectedClass = allClasses.find(clase => clase.folder === folder);
 
         if (selectedClass) {
             updateClassTitle(formatClassName(selectedClass));
             displayDocuments(selectedClass);
 
-            // Auto-select first video if available
             const firstVideo = selectedClass.recursos?.find(r => r.tipo === 'Video_YouTube');
             if (firstVideo?.id_ytb) {
                 loadYouTubeVideo(selectedClass, firstVideo.id_ytb);
-                highlightActiveSidebarItem('video', firstVideo.id_ytb);
             }
-
-            // Restore progress for this class
-            setTimeout(() => {
-                restoreProgressForCurrentClass();
-            }, 500);
         }
+    }
+
+    async function autoSelectClassAtRuntime() {
+        const savedClass = localStorage.getItem('selectedClass');
+        const allClasses = getAllClasses();
+        const folder = savedClass || (allClasses[0] ? allClasses[0].folder : null);
+        if (folder) {
+            await selectTreeClass(folder);
+            // Expand parent course
+            const courseNode = elements.sidebarTree.querySelector('.course-node');
+            if (courseNode) courseNode.classList.add('expanded');
+        }
+    }
+
+    function toggleAdminMode() {
+        if (state.isGitHubPages) {
+            alert('La gestión está deshabilitada en GitHub Pages.');
+            return;
+        }
+        state.isAdminMode = !state.isAdminMode;
+        document.body.classList.toggle('admin-mode-active', state.isAdminMode);
+
+        // Update toggle icon
+        const icon = state.isAdminMode ? 'shield-check' : 'shield';
+        elements.adminModeToggle.innerHTML = `<i data-lucide="${icon}"></i>`;
+
+        renderSidebarTree();
+        if (window.lucide) lucide.createIcons();
     }
 
     // === PLAYER MANAGEMENT ===
@@ -501,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function onPlayerStateChange(event) {
-        const videoId = state.selectedClass ? state.classesData.clases.find(c => c.nombre === state.selectedClass)?.youtube_id : null;
+        const videoId = state.selectedClass ? state.classesData.cursados.flatMap(c => c.clases).find(c => c.folder === state.selectedClass)?.recursos?.find(r => r.tipo === 'Video_YouTube')?.id_ytb : null;
         if (!videoId) return;
 
         if (event.data === window.YT.PlayerState.PLAYING) {
@@ -545,12 +568,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateSidebarVideoProgress(progress) {
-        const videoButtons = elements.documentsList.querySelectorAll('.document-item[data-resource-type="video"]');
-        videoButtons.forEach(btn => {
-            const baseText = btn.getAttribute('data-base-text') || btn.querySelector('.item-label').textContent.split(' (')[0];
-            btn.setAttribute('data-base-text', baseText);
-            btn.querySelector('.item-label').textContent = `${baseText} (${Math.round(progress)}%)`;
-        });
+        // Find corresponding class node in tree and update if needed
+        // For now, we rely on the overlay and tree refresh on save
     }
 
     function updateVideoProgressUI(progress) {
@@ -575,12 +594,8 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 if (state.youtubePlayer && state.youtubePlayer.seekTo) {
                     state.youtubePlayer.seekTo(videoProgress.currentTime);
-
-                    // Restore Play/Pause state
                     if (videoProgress.playerState === window.YT.PlayerState.PLAYING) {
                         state.youtubePlayer.playVideo();
-                    } else {
-                        state.youtubePlayer.pauseVideo();
                     }
                 }
             }, 1000);
@@ -588,84 +603,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (videoProgress && videoProgress.progress) {
             updateVideoProgressUI(videoProgress.progress);
-            updateSidebarVideoProgress(videoProgress.progress);
         }
     }
-
-    // function getCurrentVideoId() {
-    //     if (state.currentPlayer && state.currentPlayer.querySelector) {
-    //         const iframe = state.currentPlayer.querySelector('iframe[src*="youtube"]');
-    //         if (iframe) {
-    //             return extractYouTubeId(iframe.src);
-    //         }
-    //     }
-    //     return null;
-    // }
-
-    // function updateVideoProgressBar(progress) {
-    //     // Create or update progress bar
-    //     let progressBar = document.getElementById('video-progress-bar');
-    //     if (!progressBar) {
-    //         progressBar = document.createElement('div');
-    //         progressBar.id = 'video-progress-bar';
-    //         progressBar.style.position = 'absolute';
-    //         progressBar.style.bottom = '10px';
-    //         progressBar.style.left = '10px';
-    //         progressBar.style.right = '10px';
-    //         progressBar.style.height = '4px';
-    //         progressBar.style.backgroundColor = '#ddd';
-    //         progressBar.style.borderRadius = '2px';
-    //         progressBar.style.zIndex = '1000';
-
-    //         const progressFill = document.createElement('div');
-    //         progressFill.style.height = '100%';
-    //         progressFill.style.backgroundColor = '#007bff';
-    //         progressFill.style.width = '0%';
-    //         progressFill.style.transition = 'width 0.3s ease';
-    //         progressFill.id = 'video-progress-fill';
-
-    //         progressBar.appendChild(progressFill);
-    //         elements.youtubePlayer.appendChild(progressBar);
-    //     }
-
-    //     const progressFill = document.getElementById('video-progress-fill');
-    //     if (progressFill) {
-    //         progressFill.style.width = `${progress}%`;
-    //     }
-    // }
-
-    // function showRestoreNotification(message) {
-    //     let notification = document.getElementById('restore-notification');
-    //     if (!notification) {
-    //         notification = document.createElement('div');
-    //         notification.id = 'restore-notification';
-    //         notification.style.position = 'absolute';
-    //         notification.style.top = '10px';
-    //         notification.style.right = '10px';
-    //         notification.style.backgroundColor = '#28a745';
-    //         notification.style.color = 'white';
-    //         notification.style.padding = '8px 16px';
-    //         notification.style.borderRadius = '4px';
-    //         notification.style.zIndex = '1000';
-    //         notification.style.opacity = '0';
-    //         notification.style.transition = 'opacity 0.3s ease';
-
-    //         elements.youtubePlayer.appendChild(notification);
-    //     }
-
-    //     notification.textContent = message;
-    //     notification.style.opacity = '1';
-
-    //     setTimeout(() => {
-    //         notification.style.opacity = '0';
-    //     }, 3000);
-    // }
-
-    // function formatTime(seconds) {
-    //     const mins = Math.floor(seconds / 60);
-    //     const secs = Math.floor(seconds % 60);
-    //     return `${mins}:${secs.toString().padStart(2, '0')}`;
-    // }
 
     function createYouTubeIframe(videoId) {
         const iframe = document.createElement('iframe');
@@ -684,14 +623,8 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.youtubePlayer.removeChild(state.currentPlayer);
             state.currentPlayer = null;
         }
-
-        // Remove progress overlay if it exists
         const progressDisplay = document.getElementById('video-progress-percentage');
-        if (progressDisplay) {
-            progressDisplay.remove();
-        }
-
-        // Stop progress tracking interval
+        if (progressDisplay) progressDisplay.remove();
         if (state.progressInterval) {
             clearInterval(state.progressInterval);
             state.progressInterval = null;
@@ -700,86 +633,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // === DOCUMENT MANAGEMENT ===
     function displayDocuments(clase) {
-        clearDocuments();
-
-        if (!clase.recursos?.length) {
-            const noDocs = createNoDocumentsMessage();
-            elements.documentsList.appendChild(noDocs);
-        }
-
-        const classProgress = state.progressTracker.getClassProgress(clase.folder);
-
-        for (const recurso of (clase.recursos || [])) {
-            if (recurso.tipo === 'Video_YouTube') {
-                const videoProgress = classProgress.resources.video?.[recurso.id_ytb] || {};
-                const progressSuffix = videoProgress.progress ? ` (${Math.round(videoProgress.progress)}%)` : '';
-                const youtubeButton = createDocumentButton(
-                    'youtube',
-                    `Clase ${clase.fecha}${progressSuffix}`,
-                    () => {
-                        loadYouTubeVideo(clase, recurso.id_ytb);
-                        highlightActiveSidebarItem('video', recurso.id_ytb);
-                    },
-                    false,
-                    `🎥 Clase ${clase.fecha}`
-                );
-                youtubeButton.setAttribute('data-resource-type', 'video');
-                youtubeButton.setAttribute('data-resource-id', recurso.id_ytb);
-                elements.documentsList.appendChild(youtubeButton);
-            } else if (recurso.tipo === 'Documento') {
-                const docProgress = classProgress.resources.document || {};
-                const isAccessed = !!docProgress[recurso.archivo];
-                const docButton = createDocumentButton(
-                    getDocumentIcon(recurso.archivo),
-                    formatDocumentName(recurso.archivo),
-                    () => {
-                        previewDocument(clase.folder, recurso.archivo);
-                        highlightActiveSidebarItem('document', recurso.archivo);
-                    },
-                    isAccessed,
-                    formatDocumentName(recurso.archivo)
-                );
-                docButton.setAttribute('data-resource-type', 'document');
-                docButton.setAttribute('data-resource-id', recurso.archivo);
-                elements.documentsList.appendChild(docButton);
-            }
-        }
-
-        // Add Campus button if campus_id is available
-        if (clase.campus_id) {
-            const campusButton = createDocumentButton(
-                'external-link',
-                'Ver Campus Virtual',
-                () => {
-                    openCampusUrl(clase);
-                    highlightActiveSidebarItem('campus', clase.campus_id);
-                },
-                false,
-                '🏫 Campus Virtual'
-            );
-            campusButton.setAttribute('data-resource-type', 'campus');
-            campusButton.setAttribute('data-resource-id', clase.campus_id);
-            campusButton.classList.add('campus-btn');
-            elements.documentsList.appendChild(campusButton);
-        }
-
-        // Render all Lucide icons
-        if (window.lucide) {
-            lucide.createIcons();
-        }
+        // Obsolete: resources are now rendered directly in the sidebar tree
     }
 
-    function openCampusUrl(clase) {
-        if (clase.campus_id && CONFIG.campusUrl) {
-            const campusUrl = `${CONFIG.campusUrl}${clase.campus_id}`;
-            console.log('Opening campus URL in new tab:', campusUrl);
-            window.open(campusUrl, '_blank');
-            return false;
+    async function loadResource(tipo, id, label) {
+        clearPlayer();
+        const allClasses = getAllClasses();
+        const clase = allClasses.find(c => c.folder === state.selectedClass);
+        if (!clase) return;
+
+        if (tipo === 'Video_YouTube') {
+            loadYouTubeVideo(clase, id);
         } else {
-            console.error('Campus info missing - campus_id:', clase.campus_id, 'campusUrl:', CONFIG.campusUrl);
-            showError('No se encontró información del campus para esta clase');
+            const docPath = `${state.docusDir}${clase.folder}/${id}`;
+            const ext = id.substring(id.lastIndexOf('.')).toLowerCase();
+
+            if (ext === '.pdf') loadPDFDocument(docPath);
+            else if (ext === '.md') await loadMarkdownDocument(docPath, clase.nombre, id);
+            else if (ext === '.mp4') loadVideoDocument(docPath);
+            else if (['.yaml', '.yml'].includes(ext)) await loadYAMLDocument(docPath);
+            else window.open(docPath, '_blank');
+
+            state.progressTracker.updateResourceProgress(
+                state.selectedClass,
+                'document',
+                id,
+                {
+                    lastAccessed: new Date().toISOString(),
+                    type: ext.substring(1)
+                }
+            );
         }
     }
+    window.loadResource = loadResource;
+
+    function previewDocument(className, docName) {
+        loadResource('Documento', docName, docName);
+    }
+
 
     function loadCampusContent(url) {
         clearPlayer();
@@ -1305,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function clearDocuments() {
-        elements.documentsList.innerHTML = '';
+        // Obsolete
     }
 
     function showError(message) {
@@ -1406,120 +1297,313 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // === MANAGEMENT / EDITOR FUNCTIONS ===
-    function openAdminModal() {
-        elements.adminModal.style.display = 'flex';
-        renderEditor();
+    // === TREE MANAGEMENT HANDLERS ===
+    window.addClaseToCursado = async (event, cIndex) => {
+        if (event) event.stopPropagation();
+
+        const courseNode = elements.sidebarTree.children[cIndex];
+        const content = courseNode.querySelector('.node-content');
+
+        // Ensure expanded
+        courseNode.classList.add('expanded');
+        state.expandedNodes.add(JSON.stringify(cIndex));
+
+        const addContainer = document.createElement('div');
+        addContainer.className = 'tree-node class-node temporary-node';
+        addContainer.style.padding = '5px 20px';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Nombre de nueva clase...';
+        input.className = 'edit-input-inline';
+        input.style.width = '100%';
+
+        addContainer.appendChild(input);
+        content.insertBefore(addContainer, content.lastElementChild);
+        input.focus();
+
+        const finishAdd = async (save) => {
+            const name = input.value.trim();
+            if (save && name) {
+                const newClase = {
+                    nombre: name,
+                    fecha: new Date().toLocaleDateString('es-ES'),
+                    class_number: (state.classesData.cursados[cIndex].clases.length + 1).toString(),
+                    folder: name.trim().replace(/\s+/g, '_').toLowerCase(),
+                    recursos: [],
+                    isLoaded: true
+                };
+                state.classesData.cursados[cIndex].clases.push(newClase);
+                await saveChanges(true);
+            } else {
+                renderSidebarTree();
+            }
+        };
+
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') finishAdd(true);
+            if (e.key === 'Escape') finishAdd(false);
+        };
+        input.onblur = () => finishAdd(false);
+    };
+
+    window.editNodeName = async (event, type, index) => {
+        if (event) event.stopPropagation();
+
+        const header = event.currentTarget.closest('.node-header');
+        const labelSpan = header.querySelector('.node-label');
+        const originalText = labelSpan.textContent;
+
+        // Disable click while editing
+        header.onclick = null;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'edit-input-inline';
+        input.value = type === 'clase' ? state.classesData.cursados[index[0]].clases[index[1]].nombre : originalText;
+        input.style.width = '100%';
+
+        labelSpan.innerHTML = '';
+        labelSpan.appendChild(input);
+        input.focus();
+        input.select();
+
+        const finishEdit = async (save) => {
+            const newValue = input.value.trim();
+            if (save && newValue && newValue !== originalText) {
+                if (type === 'clase') {
+                    state.classesData.cursados[index[0]].clases[index[1]].nombre = newValue;
+                }
+                await saveChanges(true);
+            } else {
+                renderSidebarTree(); // Refresh to restore original state
+            }
+        };
+
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') finishEdit(true);
+            if (e.key === 'Escape') finishEdit(false);
+        };
+
+        input.onblur = () => finishEdit(true);
+    };
+
+
+    window.deleteClass = async (event, index) => {
+        if (event) event.stopPropagation();
+        if (confirm('¿Seguro que deseas eliminar esta clase y sus recursos?')) {
+            state.classesData.cursados[index[0]].clases.splice(index[1], 1);
+            await saveChanges(true);
+        }
+    };
+
+    window.deleteResource = async (event, path) => {
+        if (event) event.stopPropagation();
+        if (confirm('¿Eliminar este recurso?')) {
+            state.classesData.cursados[path[0]].clases[path[1]].recursos.splice(path[2], 1);
+            await saveChanges(true);
+        }
+    };
+
+    window.showResourceMenu = (event, cIndex, clIndex) => {
+        if (event) event.stopPropagation();
+        const existingMenu = document.querySelector('.float-menu');
+        if (existingMenu) existingMenu.remove();
+
+        const menu = document.createElement('div');
+        menu.className = 'float-menu';
+        menu.style.top = `${event.clientY}px`;
+        menu.style.left = `${event.clientX}px`;
+
+        menu.innerHTML = `
+            <div class="float-menu-item" onclick="addYoutubeToTree(${cIndex}, ${clIndex})">
+                <i data-lucide="youtube"></i> YouTube Video
+            </div>
+            <div class="float-menu-item" onclick="document.getElementById('file-upload-global').click(); window.globalUploadTarget = {cIndex: ${cIndex}, clIndex: ${clIndex}}">
+                <i data-lucide="file-text"></i> Subir Documento
+            </div>
+        `;
+
+        document.body.appendChild(menu);
+        if (window.lucide) lucide.createIcons();
+
+        document.addEventListener('click', () => menu.remove(), { once: true });
+    };
+
+    window.addYoutubeToTree = async (cIndex, clIndex) => {
+        const videoId = prompt("ID del video de YouTube:");
+        if (!videoId) return;
+
+        state.classesData.cursados[cIndex].clases[clIndex].recursos.push({
+            tipo: "Video_YouTube",
+            id_ytb: videoId
+        });
+        await saveChanges(true);
+    };
+
+    // Global file input for uploads from tree
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.id = 'file-upload-global';
+    fileInput.style.display = 'none';
+    fileInput.onchange = (e) => handleGlobalFileUpload(e);
+    document.body.appendChild(fileInput);
+
+    async function handleGlobalFileUpload(event) {
+        const file = event.target.files[0];
+        const target = window.globalUploadTarget;
+        if (!file || !target) return;
+
+        const clase = state.classesData.cursados[target.cIndex].clases[target.clIndex];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('targetFolder', clase.folder);
+
+        try {
+            console.log('Subiendo archivo...', file.name);
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                console.info('¡Archivo subido con éxito!');
+                await loadDocusConfig();
+                await loadClassesData();
+                renderSidebarTree();
+            } else {
+                throw new Error('Error en la carga');
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Error al subir: ' + error.message);
+        }
     }
 
-    function renderEditor() {
-        elements.cursadosEditorList.innerHTML = '';
+    window.openAdminModal = () => {
+        const modal = document.getElementById('admin-modal');
+        if (modal) {
+            renderAdminModalHierarchical();
+            modal.style.display = 'flex';
+        }
+    };
+
+    function renderAdminModalHierarchical() {
+        const container = document.getElementById('cursados-editor-list');
+        if (!container) return;
+        container.innerHTML = '';
+
         state.classesData.cursados.forEach((cursado, cIndex) => {
-            const cursadoDiv = document.createElement('div');
-            cursadoDiv.className = 'editor-item';
-            cursadoDiv.innerHTML = `
-                <div class="editor-field">
-                    <label>Nombre del Cursado</label>
-                    <input type="text" class="editor-input" value="${cursado.nombre}" onchange="updateState('cursado', ${cIndex}, 'nombre', this.value)">
+            const courseDiv = document.createElement('div');
+            courseDiv.className = 'modal-course-block';
+
+            // Create Header
+            const header = document.createElement('div');
+            header.className = 'modal-section-header';
+            header.innerHTML = `
+                <i data-lucide="book" class="modal-icon"></i>
+                <input type="text" class="modal-input-main" value="${cursado.nombre}">
+                <div class="header-actions">
+                    <button class="action-btn-mini delete-course" title="Eliminar"><i data-lucide="trash-2"></i></button>
+                    <button class="action-btn-mini copy-course" title="Duplicar"><i data-lucide="copy"></i></button>
                 </div>
-                <div class="editor-field">
-                    <label>Nivel</label>
-                    <input type="text" class="editor-input" value="${cursado.nivel}" onchange="updateState('cursado', ${cIndex}, 'nivel', this.value)">
-                </div>
-                <div class="clases-list" id="clases-editor-${cIndex}"></div>
-                <button class="action-btn" onclick="addClaseToCursado(${cIndex})">＋ Añadir Clase</button>
             `;
-            elements.cursadosEditorList.appendChild(cursadoDiv);
 
-            const clasesListDiv = cursadoDiv.querySelector('.clases-list');
+            const nameInput = header.querySelector('.modal-input-main');
+            nameInput.onchange = (e) => state.classesData.cursados[cIndex].nombre = e.target.value;
+
+            header.querySelector('.delete-course').onclick = () => {
+                if (confirm('¿Eliminar todo este cursado?')) {
+                    state.classesData.cursados.splice(cIndex, 1);
+                    renderAdminModalHierarchical();
+                }
+            };
+            header.querySelector('.copy-course').onclick = () => duplicateCursado(cIndex);
+
+            courseDiv.appendChild(header);
+
+            // Create Details Container
+            const details = document.createElement('div');
+            details.className = 'modal-course-details';
+            const grid = document.createElement('div');
+            grid.className = 'modal-grid';
+
             cursado.clases.forEach((clase, clIndex) => {
-                const claseDiv = document.createElement('div');
-                claseDiv.className = 'clase-editor-item';
-                claseDiv.innerHTML = `
-                    <div class="editor-field">
-                        <label>Nombre de Clase</label>
-                        <input type="text" class="editor-input" value="${clase.nombre}" onchange="updateState('clase', [${cIndex}, ${clIndex}], 'nombre', this.value)">
+                const card = document.createElement('div');
+                card.className = 'modal-class-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <strong>Clase ${clIndex + 1}</strong>
+                        <button class="action-btn-mini remove-class"><i data-lucide="x"></i></button>
                     </div>
-                    <div class="editor-field">
-                        <label>Fecha (DD/MM/YYYY)</label>
-                        <input type="text" class="editor-input" value="${clase.fecha}" onchange="updateState('clase', [${cIndex}, ${clIndex}], 'fecha', this.value)">
+                    <div class="card-body">
+                        <div class="input-group">
+                            <label>Nombre:</label>
+                            <input type="text" class="edit-name" value="${clase.nombre}">
+                        </div>
+                        <div class="input-group">
+                            <label>Fecha:</label>
+                            <input type="text" class="edit-date" value="${clase.fecha || ''}">
+                        </div>
+                        <div class="input-group">
+                            <label>Campus ID:</label>
+                            <input type="text" class="edit-campus" value="${clase.campus_id || ''}">
+                        </div>
                     </div>
-                    <div class="editor-field">
-                        <label>Carpeta (en el servidor)</label>
-                        <input type="text" class="editor-input" value="${clase.folder}" onchange="updateState('clase', [${cIndex}, ${clIndex}], 'folder', this.value)">
-                    </div>
-                    <div class="recursos-editor" id="recursos-editor-${cIndex}-${clIndex}">
-                        ${clase.recursos.map((r, rIndex) => `
-                            <div class="recurso-row">
-                                <span class="badge">${r.tipo}</span> 
-                                <span>${r.tipo === 'Video_YouTube' ? r.id_ytb : r.archivo}</span>
-                                <button class="remove-btn" onclick="removeRecurso(${cIndex}, ${clIndex}, ${rIndex})">✕</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button class="action-btn" onclick="addYoutubeToClase(${cIndex}, ${clIndex})" style="font-size: 0.8rem">＋ YouTube</button>
                 `;
-                clasesListDiv.appendChild(claseDiv);
+
+                card.querySelector('.remove-class').onclick = () => {
+                    cursado.clases.splice(clIndex, 1);
+                    renderAdminModalHierarchical();
+                };
+                card.querySelector('.edit-name').onchange = (e) => cursado.clases[clIndex].nombre = e.target.value;
+                card.querySelector('.edit-date').onchange = (e) => cursado.clases[clIndex].fecha = e.target.value;
+                card.querySelector('.edit-campus').onchange = (e) => cursado.clases[clIndex].campus_id = e.target.value;
+
+                grid.appendChild(card);
             });
+
+            // Add Class Button
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-card-btn';
+            addBtn.innerHTML = '<i data-lucide="plus"></i>';
+            addBtn.onclick = async () => {
+                const name = prompt("Nombre de la nueva clase:");
+                if (name) {
+                    const newClase = {
+                        nombre: name,
+                        fecha: new Date().toLocaleDateString('es-ES'),
+                        class_number: (cursado.clases.length + 1).toString(),
+                        folder: name.trim().replace(/\s+/g, '_').toLowerCase(),
+                        recursos: [],
+                        isLoaded: true
+                    };
+                    cursado.clases.push(newClase);
+                    renderAdminModalHierarchical();
+                }
+            };
+            grid.appendChild(addBtn);
+
+            details.appendChild(grid);
+            courseDiv.appendChild(details);
+            container.appendChild(courseDiv);
         });
+
+        if (window.lucide) lucide.createIcons();
     }
 
-    // Expose functions to global scope for onclick handlers
-    window.updateState = (type, index, field, value) => {
-        if (type === 'cursado') {
-            state.classesData.cursados[index][field] = value;
-        } else if (type === 'clase') {
-            const [cIdx, clIdx] = index;
-            state.classesData.cursados[cIdx].clases[clIdx][field] = value;
-        }
+    window.duplicateCursado = (cIndex) => {
+        const original = state.classesData.cursados[cIndex];
+        const copy = JSON.parse(JSON.stringify(original));
+        copy.id = Date.now().toString();
+        copy.nombre += " (Copia)";
+        state.classesData.cursados.push(copy);
+        renderAdminModalHierarchical();
     };
-
-    window.addClaseToCursado = (cIndex) => {
-        state.classesData.cursados[cIndex].clases.push({
-            nombre: "Nueva Clase",
-            fecha: new Date().toLocaleDateString('es-ES'),
-            folder: "C" + (getAllClasses().length + 1) + "_Nueva_Clase",
-            recursos: []
-        });
-        renderEditor();
-    };
-
-    window.addYoutubeToClase = (cIndex, clIndex) => {
-        const ytbId = prompt("Ingresa el ID de YouTube (ej: 4il7Li-a684):");
-        if (ytbId) {
-            state.classesData.cursados[cIndex].clases[clIndex].recursos.push({
-                tipo: "Video_YouTube",
-                id_ytb: ytbId
-            });
-            renderEditor();
-        }
-    };
-
-    window.removeRecurso = (cIndex, clIndex, rIndex) => {
-        state.classesData.cursados[cIndex].clases[clIndex].recursos.splice(rIndex, 1);
-        renderEditor();
-    };
-
-    function addCursadoToEditor() {
-        state.classesData.cursados.push({
-            nombre: "Nueva Diplomatura",
-            nivel: "Diplomatura",
-            clases: []
-        });
-        renderEditor();
-    }
 
     async function saveChanges(silent = false) {
         try {
-            if (state.isGitHubPages) {
-                alert('Estás viendo la versión estática en GitHub. Los cambios solo se pueden guardar ejecutando la app localmente.');
-                return;
-            }
-
-            if (!silent) {
-                elements.saveAllBtn.textContent = 'Guardando...';
-                elements.saveAllBtn.disabled = true;
-            }
+            if (state.isGitHubPages) return;
 
             const payload = {
                 ...state.manifest,
@@ -1533,72 +1617,47 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (response.ok) {
-                if (!silent) alert('¡Cambios guardados con éxito!');
-                // Wait a bit before reload to ensure server saved
-                setTimeout(() => location.reload(), 300);
+                if (!silent) console.info('¡Cambios guardados con éxito!');
+                renderSidebarTree();
             } else {
                 throw new Error('Error al guardar');
             }
         } catch (error) {
             console.error('Save error:', error);
-            alert('Error al guardar los cambios: ' + error.message);
-        } finally {
-            if (!silent) {
-                elements.saveAllBtn.textContent = 'Guardar Cambios';
-                elements.saveAllBtn.disabled = false;
-            }
+            if (!silent) alert('Error al guardar: ' + error.message);
         }
     }
 
-    // === QUICK ADD LOGIC ===
-    async function handleQuickAddClass() {
-        const name = prompt("Nombre de la nueva clase:");
+    async function addNewCursado() {
+        const name = prompt("Nombre del nuevo cursado/nivel:");
         if (!name) return;
 
-        let targetCursado = state.classesData.cursados[0];
-        const selectedValue = elements.classSelector.value;
-        const allClasses = getAllClasses();
-        const selectedClass = allClasses.find(c => c.folder === selectedValue);
-
-        if (selectedClass) {
-            targetCursado = state.classesData.cursados.find(cur =>
-                cur.clases.some(c => c.folder === selectedClass.folder)
-            );
-        }
-
-        const newClase = {
+        const newCursado = {
+            id: Date.now().toString(),
             nombre: name,
-            fecha: new Date().toLocaleDateString('es-ES'),
-            class_number: (targetCursado.clases.length + 1).toString(),
-            folder: name.trim().replace(/\s+/g, '_').toLowerCase(),
-            recursos: []
+            nivel: "Diplomatura", // Default level
+            clases: []
         };
 
-        targetCursado.clases.push(newClase);
-        await saveChanges(true); // Silent save
+        state.classesData.cursados.push(newCursado);
+        await saveChanges(false);
+
+
+        // Hide modal if open
+        const modal = document.getElementById('admin-modal');
+        if (modal) modal.style.display = 'none';
     }
 
-    async function handleQuickAddYoutube() {
-        const videoId = prompt("ID del video de YouTube (ej. dQw4w9WgXcQ):");
-        if (!videoId) return;
+    // Modal Synchronization
+    const adminModal = document.getElementById('admin-modal');
+    const addCursadoBtn = document.getElementById('add-cursado-btn');
+    const closeModalBtn = document.getElementById('close-modal');
+    const saveAllBtn = document.getElementById('save-all-btn');
 
-        const selectedValue = elements.classSelector.value;
-        const allClasses = getAllClasses();
-        const selectedClass = allClasses.find(c => c.folder === selectedValue);
-
-        if (!selectedClass) {
-            alert("Selecciona una clase primero.");
-            return;
-        }
-
-        if (!selectedClass.recursos) selectedClass.recursos = [];
-        selectedClass.recursos.push({
-            tipo: "Video_YouTube",
-            id_ytb: videoId
-        });
-
-        await saveChanges(true); // Silent save
-    }
+    if (addCursadoBtn) addCursadoBtn.onclick = () => addNewCursado();
+    if (closeModalBtn) closeModalBtn.onclick = () => adminModal.style.display = 'none';
+    if (saveAllBtn) saveAllBtn.onclick = () => saveChanges();
 
     window.saveChanges = saveChanges;
+    window.addNewCursado = addNewCursado;
 });
